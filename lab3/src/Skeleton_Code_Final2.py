@@ -26,14 +26,14 @@ class colourIdentifier():
 		self.colour = 0
 
 		# Initialise the value you wish to use for sensitivity in the colour detection (10 should be enough)
-		rospy.sensitivity = 20
+		rospy.sensitivity = 10
 
 		# Initialise some standard movement messages such as a simple move forward and a message with all zeroes (stop)
 		rospy.moveforward = Twist()
-		rospy.moveforward.linear.x = 0.2
+		rospy.moveforward.linear.x = 0.1
 		
 		rospy.moveback = Twist()
-		rospy.moveback.linear.x = - 0.2
+		rospy.moveback.linear.x = -0.1
 		
 		rospy.turnl = Twist()
 		rospy.turnl.linear.x = 0
@@ -61,12 +61,12 @@ class colourIdentifier():
 			print(e)
 		
 		# Set the upper and lower bounds for the two colours you wish to identify
-		hsv_colour1_lower = np.array([60 - rospy.sensitivity, 100, 100])#green
+		hsv_colour1_lower = np.array([60 - rospy.sensitivity, 50, 100])#green
 		hsv_colour1_upper = np.array([60 + rospy.sensitivity, 255, 255])
 		hsv_colour2_lower = np.array([120 - rospy.sensitivity, 100, 100])#blue
 		hsv_colour2_upper = np.array([120 + rospy.sensitivity, 255, 255])
-		hsv_colour3_lower = np.array([0 - rospy.sensitivity, 100, 100])#red
-		hsv_colour3_upper = np.array([0 + rospy.sensitivity, 255, 255])
+		hsv_colour3_lower = np.array([10 - rospy.sensitivity, 150, 100])#red
+		hsv_colour3_upper = np.array([10 + rospy.sensitivity, 255, 255])
 		
 		# Convert the rgb image into a hsv image
 		hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
@@ -75,7 +75,7 @@ class colourIdentifier():
 		# Be sure to do this for the second or third colour as well
 		mask1 = cv2.inRange(hsv_image, hsv_colour1_lower, hsv_colour1_upper)
 		mask2 = cv2.inRange(hsv_image, hsv_colour2_lower, hsv_colour2_upper)
-		mask3 = cv2.inRange(hsv_image, hsv_colour3_lower, hsv_colour3_upper)
+		mask3 = cv2.inRange(hsv_image, hsv_colour2_lower, hsv_colour2_upper)
 
 		# To combine the masks you should use the cv2.bitwise_or() method
 		# You can only bitwise_or two image at once, so multiple calls are necessary for more than two colours
@@ -122,9 +122,10 @@ class colourIdentifier():
 				c = c1
 				colour_max_area = cv2.contourArea(c)
 				self.colour = 3
-			
-		M = cv2.moments(c)
-		cx, cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
+		
+		if len(contours3) != 0 or len(contours2) != 0 or len(contours1) != 0: 	
+			M = cv2.moments(c)
+			cx, cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
 	
 		self.red_visible = 0
 		self.green_visible = 0
@@ -150,16 +151,19 @@ class colourIdentifier():
 		#Check if a flag has been set for the stop message
 		if self.colour != 0 and (self.previous_colour == 0 or self.previous_colour == self.colour):
 			self.previous_colour = self.colour
-			if (colour_max_area) > 3000:
+			#print(colour_max_area)
+			if (colour_max_area) > 6000:
 				# Too close to object, need to move backwards
 				# linear = positive
 				# angular = radius of minimum enclosing circle
 				self.pub.publish(rospy.moveback)
-			elif (colour_max_area) < 3000:
+			elif (colour_max_area) < 4000:
 				# Too far away from object, need to move forwards
 				# linear = positive
 				# angular = radius of minimum enclosing circle
 				self.pub.publish(rospy.moveforward)
+			elif colour_max_area > 4000 and colour_max_area < 6000:			
+				self.pub.publish(rospy.stopmoving)
 		else:
 			self.pub.publish(rospy.stopmoving)
 			

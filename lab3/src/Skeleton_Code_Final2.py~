@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# This final piece fo skeleton code will be centred around gettign the students to follow a colour and stop upon sight of another one.
 
 from __future__ import division
 import cv2
@@ -21,14 +22,26 @@ class colourIdentifier():
 		self.red_visible = 0
 		self.green_visible = 0
 		self.blue_visible = 0
+		self.previous_colour = 0
+		self.colour = 0
 
 		# Initialise the value you wish to use for sensitivity in the colour detection (10 should be enough)
 		rospy.sensitivity = 10
 
 		# Initialise some standard movement messages such as a simple move forward and a message with all zeroes (stop)
-		rospy.turn = Twist()
-		rospy.turn.linear.x = 0
-		rospy.turn.angular.z = 1.508
+		rospy.moveforward = Twist()
+		rospy.moveforward.linear.x = 0.1
+		
+		rospy.moveback = Twist()
+		rospy.moveback.linear.x = -0.1
+		
+		rospy.turnl = Twist()
+		rospy.turnl.linear.x = 0
+		rospy.turnl.angular.z = 1.508
+		
+		rospy.turnr = Twist()
+		rospy.turnr.linear.x = 0
+		rospy.turnr.angular.z = -1.508
 		
 		rospy.stopmoving = Twist()
 		rospy.stopmoving.linear.x = 0
@@ -38,7 +51,7 @@ class colourIdentifier():
 		rospy.bridge = CvBridge()
 		# We covered which topic to subscribe to should you wish to receive image data
 		rospy.Subscriber('camera/rgb/image_raw', Image, self.callback)
-	
+				
 	def callback(self, data):
 		# Convert the received image into a opencv image
 		# But remember that you should always wrap a call to this conversion method in an exception handler
@@ -46,72 +59,74 @@ class colourIdentifier():
 			cv_image = rospy.bridge.imgmsg_to_cv2(data, "bgr8")
 		except CvBridgeError as e:
 			print(e)
-			
+		
 		# Set the upper and lower bounds for the two colours you wish to identify
-		hsv_green_lower = np.array([60 - rospy.sensitivity, 100, 100])
-		hsv_green_upper = np.array([60 + rospy.sensitivity, 255, 255])
-		hsv_red_lower = np.array([0 - rospy.sensitivity, 100, 100])
-		hsv_red_upper = np.array([0 + rospy.sensitivity, 255, 255])
-		hsv_blue_lower = np.array([120 - rospy.sensitivity, 100, 100])
-		hsv_blue_upper = np.array([120 + rospy.sensitivity, 255, 255])
+		hsv_colour1_lower = np.array([60 - rospy.sensitivity, 40, 100])#green
+		hsv_colour1_upper = np.array([60 + rospy.sensitivity, 255, 255])
+		hsv_colour2_lower = np.array([120 - rospy.sensitivity, 100, 100])#blue
+		hsv_colour2_upper = np.array([120 + rospy.sensitivity, 255, 255])
+		hsv_colour3_lower = np.array([10 - rospy.sensitivity, 150, 100])#red
+		hsv_colour3_upper = np.array([10 + rospy.sensitivity, 255, 255])
 		
 		# Convert the rgb image into a hsv image
 		hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
 		
 		# Filter out everything but particular colours using the cv2.inRange() method
-		mask1 = cv2.inRange(hsv_image, hsv_green_lower, hsv_green_upper)
-		mask2 = cv2.inRange(hsv_image, hsv_red_lower, hsv_red_upper)
-		mask3 = cv2.inRange(hsv_image, hsv_blue_lower, hsv_blue_upper)
+		# Be sure to do this for the second or third colour as well
+		mask1 = cv2.inRange(hsv_image, hsv_colour1_lower, hsv_colour1_upper)
+		mask2 = cv2.inRange(hsv_image, hsv_colour2_lower, hsv_colour2_upper)
+		mask3 = cv2.inRange(hsv_image, hsv_colour2_lower, hsv_colour2_upper)
 
 		# To combine the masks you should use the cv2.bitwise_or() method
 		# You can only bitwise_or two image at once, so multiple calls are necessary for more than two colours
 		mask1_2 = cv2.bitwise_or(mask1, mask2)
 		masks = cv2.bitwise_or(mask1_2, mask3)
-
+		
 		# Apply the mask to the original image using the cv2.bitwise_and() method
 		# As mentioned on the worksheet the best way to do this is to bitwise and an image with itself and pass the mask to the mask parameter
 		# As opposed to performing a bitwise_and on the mask and the image. 
 		output = cv2.bitwise_and(cv_image, cv_image, mask=masks)
 
-	
+		
 		# Find the contours that appear within the certain colours mask using the cv2.findContours() method
 		# For <mode> use cv2.RETR_LIST for <method> use cv2.CHAIN_APPROX_SIMPLE
 		contours1 = cv2.findContours(mask1 ,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
 		contours2 = cv2.findContours(mask2 ,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
 		contours3 = cv2.findContours(mask3 ,cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
-		
+
 		# Loop over the contours
 		# There are a few different methods for identifying which contour is the biggest
 		# Loop throguht the list and keep track of which contour is biggest or
 		# Use the max() method to find the largest contour
 		# M = cv2.moments(c)
 		# cx, cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
+		
 		colour_max_area = 0
-		colour = -1
+		
 		if len(contours1) != 0:
 			c = max(contours1, key = cv2.contourArea)
 			if colour_max_area < cv2.contourArea(c):
 				colour_max_area = cv2.contourArea(c)
-				colour = 1
+				self.colour = 1
 		
 		if len(contours2) != 0:
 			c1 = max(contours2, key = cv2.contourArea)
 			if colour_max_area < cv2.contourArea(c1):
 				c = c1
 				colour_max_area = cv2.contourArea(c)
-				colour = 2
+				self.colour = 2
 			
 		if len(contours3) != 0:
 			c1 = max(contours3, key = cv2.contourArea)
 			if colour_max_area < cv2.contourArea(c1):
 				c = c1
 				colour_max_area = cv2.contourArea(c)
-				colour = 3
-			
-		if colour_max_area != 0:
+				self.colour = 3
+		
+		if len(contours3) != 0 or len(contours2) != 0 or len(contours1) != 0: 	
 			M = cv2.moments(c)
 			cx, cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
-						
+	
 		self.red_visible = 0
 		self.green_visible = 0
 		self.blue_visible = 0
@@ -125,26 +140,40 @@ class colourIdentifier():
 			circle = cv2.circle(output, (cx, cy), radius, (255,0,0) ,1)
 			output = cv2.bitwise_and(output,output , mask=circle)
 			# Then alter the values of any flags
-			if colour == 1:
+			if self.colour == 1:
 				self.green_visible = 1
-				self.red_visible = 0
-				self.blue_visible = 0
-			elif colour == 2:
-				self.green_visible = 0
+			elif self.colour == 2:
 				self.red_visible = 1
-				self.blue_visible = 0
-			elif colour == 3:
-				self.green_visible = 0
-				self.red_visible = 0
+			elif self.colour == 3:
 				self.blue_visible = 1
 		
-		#self.pub.publish(rospy.turn)
-		print(self.red_visible, self.green_visible, self.blue_visible)
+
+		#Check if a flag has been set for the stop message
+		if self.colour != 0 and (self.previous_colour == 0 or self.previous_colour == self.colour):
+			self.previous_colour = self.colour
+			#print(colour_max_area)
+			if (colour_max_area) > 6000:
+				# Too close to object, need to move backwards
+				# linear = positive
+				# angular = radius of minimum enclosing circle
+				self.pub.publish(rospy.moveback)
+			elif (colour_max_area) < 4000:
+				# Too far away from object, need to move forwards
+				# linear = positive
+				# angular = radius of minimum enclosing circle
+				self.pub.publish(rospy.moveforward)
+			elif colour_max_area > 4000 and colour_max_area < 6000:			
+				self.pub.publish(rospy.stopmoving)
+		else:
+			self.pub.publish(rospy.stopmoving)
+			
+
+		# Be sure to do this for the other colour as well
 		#Show the resultant images you have created. You can show all of them or just the end result if you wish to.
 		cv2.namedWindow('Camera_Feed')
 		cv2.imshow('Camera_Feed', output)
-		cv2.waitKey(3)		
-		
+		cv2.waitKey(3)
+
 # Create a node of your class in the main and ensure it stays up and running
 # handling exceptions and such
 def main(args):

@@ -138,7 +138,7 @@ class colourIdentifier():
 				self.red_visible = 0
 				self.blue_visible = 1
 		
-		#self.pub.publish(rospy.turn)
+		self.pub.publish(rospy.turn)
 		print(self.red_visible, self.green_visible, self.blue_visible)
 		#Show the resultant images you have created. You can show all of them or just the end result if you wish to.
 		cv2.namedWindow('Camera_Feed')

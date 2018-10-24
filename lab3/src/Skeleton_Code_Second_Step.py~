@@ -30,8 +30,8 @@ class colourIdentifier():
 		# Set the upper and lower bounds for the two colours you wish to identify
 		hsv_green_lower = np.array([60 - rospy.sensitivity, 50, 100])
 		hsv_green_upper = np.array([60 + rospy.sensitivity, 255, 255])
-		hsv_red_lower = np.array([0 - rospy.sensitivity, 100, 100])
-		hsv_red_upper = np.array([0 + rospy.sensitivity, 255, 255])
+		hsv_red_lower = np.array([10 - rospy.sensitivity, 50, 100])
+		hsv_red_upper = np.array([10 + rospy.sensitivity, 255, 255])
 		hsv_blue_lower = np.array([120 - rospy.sensitivity, 100, 100])
 		hsv_blue_upper = np.array([120 + rospy.sensitivity, 255, 255])
 		# Convert the rgb image into a hsv image
