@@ -63,42 +63,70 @@ class colourIdentifier():
         # hsv_red_upper = np.array([10 + sensitivity, 255, 255])
         
 
-        with tf.Session(graph = self.graph) as sess:
-            while True:
+        # with tf.Session(graph = self.graph) as sess:
+        #     try:
+        #         # Convert the received image into a opencv image
+        #         cv_image = self.bridge.imgmsg_to_cv2(data, "rgb8")
+        #     except CvBridgeError as e:
+        #         print(e)
 
-                try:
-                    # Convert the received image into a opencv image
-                    cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-                except CvBridgeError as e:
-                    print(e)
+        #     hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
+        #     gs = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
+        #     resized_frame = cv2.resize(gs, (self.input_height, self.input_width), interpolation=cv2.INTER_AREA)
+        #     # cv2.namedWindow('Camera_Feed')
+        #     # cv2.imshow('Camera_Feed', resized_frame)
+        #     numpy_frame = np.float32(resized_frame)
+        #     normalised = cv2.normalize(numpy_frame, None, alpha = 0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+        #     cv2.namedWindow('WINDOW2')
+        #     cv2.imshow('WINDOW2', normalised)
+        #     t = np.expand_dims(normalised, axis = 0)
 
-                hsv = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
-                gs = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-                resized_frame = cv2.resize(gs, (self.input_height, self.input_width), interpolation=cv2.INTER_AREA)
-                cv2.namedWindow('Camera_Feed')
-                cv2.imshow('Camera_Feed', resized_frame)
-                numpy_frame = np.float32(resized_frame)
-                normalised = cv2.normalize(numpy_frame, None, alpha = 0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-                cv2.namedWindow('WINDOW2')
-                cv2.imshow('WINDOW2', normalised)
-                t = np.expand_dims(normalised, axis = 0)
+        #     results = sess.run(self.output_op.outputs[0],{self.input_op.outputs[0]: t})
+        #     results = np.squeeze(results)
+        #     top_k = results.argsort()[-7:][::-1]
+        #     print(self.labels[top_k[0]], results[top_k[0]])
+        #     # loc = np.where(results[top_k[0]] >= 0.2)
+        #     # print(loc)
 
-                results = sess.run(self.output_op.outputs[0],{self.input_op.outputs[0]: t})
-                results = np.squeeze(results)
-                top_k = results.argsort()[-7:][::-1]
-                print(self.labels[top_k[0]], results[top_k[0]])
-
-                cv2.waitKey(3)
-                # if cv2.waitKey(1) & 0xFF == ord('q'):
-                #     sess.close()
-                #     break
-
+        #     cv2.waitKey(3)
+        #         # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #         #     sess.close()
+        #         #     break
+        
         
 
         #find contours in the image
-        # #Make an individual find contours for each mask
-        # Gcontours, Ghierarchy = cv2.findContours(Gmask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        # Bcontours, Bhierachy = cv2.findContours(Bmask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        # # #Make an individual find contours for each mask
+        # # Gcontours, Ghierarchy = cv2.findContours(Gmask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        # # Bcontours, Bhierachy = cv2.findContours(Bmask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+        cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        conv = np.float32(cv_image)
+        img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        img2 = img.copy()
+        template = cv2.imread('m.png',0)
+        template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
+        w, h = template.shape[::-1]
+
+        # All the 6 methods for comparison in a list
+        meth = 'cv2.TM_CCOEFF_NORMED'
+
+        img = img2.copy()
+        method = eval(meth)
+        #print(method)
+
+        # Apply template Matching
+        res = cv2.matchTemplate(img,template,method)
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        loc = np.where(res >= 0.4)
+        print(loc)
+        # print(res)
+
+        cv2.namedWindow('WINDOW2')
+        cv2.imshow('WINDOW2', img)
+        cv2.waitKey(3)
+        # if loc.size() > 1:
+        #     print("MUSTARD FOUND")
 
     
 
