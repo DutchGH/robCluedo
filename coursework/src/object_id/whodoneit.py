@@ -13,6 +13,19 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
+class CleudoCharacter:
+    def __init__(self, name, fn):
+        self.name = name
+        self.fn = fn
+        self.convScore = 0
+        self.templateScore = 0
+
+    def getScore(self):
+        return self.templateScore
+
+    def setScore(self, score):
+        self.templateScore = score
+
 class colourIdentifier():
 
     def __init__(self, pub, rate, graph, labels):
@@ -53,16 +66,10 @@ class colourIdentifier():
 
 
     def callback(self, data):
-        sensitivity = 10
-        # # Set the upper and lower bounds for the two colours you wish to identify
-        # hsv_green_lower = np.array([60 - sensitivity, 100, 100])
-        # hsv_green_upper = np.array([60 + sensitivity, 255, 255])
-        # hsv_blue_lower = np.array([120 - sensitivity, 50, 50])
-        # hsv_blue_upper = np.array([120 + sensitivity, 255, 255])
-        # hsv_red_lower = np.array([10 - sensitivity, 100, 100])
-        # hsv_red_upper = np.array([10 + sensitivity, 255, 255])
+        clu_list = createCharacterList()
+ 
         
-
+        #Conv NN - Not having too much success with this if I'm honest
         # with tf.Session(graph = self.graph) as sess:
         #     try:
         #         # Convert the received image into a opencv image
@@ -93,58 +100,35 @@ class colourIdentifier():
         #         #     sess.close()
         #         #     break
         
-        
-
-        #find contours in the image
-        # # #Make an individual find contours for each mask
-        # # Gcontours, Ghierarchy = cv2.findContours(Gmask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        # # Bcontours, Bhierachy = cv2.findContours(Bmask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-
+        #........ TEMPLATE MATCHING ....................#
+        bestCharacter = CleudoCharacter(None, None)
         cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         conv = np.float32(cv_image)
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         img2 = img.copy()
-        template = cv2.imread('m.png',0)
-        template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
-        w, h = template.shape[::-1]
+        for clu in clu_list:
+            template = cv2.imread(clu.fn,0)
+            template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
+            w, h = template.shape[::-1]
 
-        # All the 6 methods for comparison in a list
-        meth = 'cv2.TM_CCOEFF_NORMED'
+            meth = 'cv2.TM_CCOEFF_NORMED'
 
-        img = img2.copy()
-        method = eval(meth)
-        #print(method)
+            img = img2.copy()
+            method = eval(meth)
 
-        # Apply template Matching
-        res = cv2.matchTemplate(img,template,method)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-        loc = np.where(res >= 0.4)
-        print(loc)
-        # print(res)
+            # Apply template Matching
+            res = cv2.matchTemplate(img,template,method)
+            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+            clu.setScore(max_val)
+            if clu.getScore() > bestCharacter.getScore() and clu.getScore() > 0.5:
+                bestCharacter = clu
+
 
         cv2.namedWindow('WINDOW2')
         cv2.imshow('WINDOW2', img)
+        print (bestCharacter.name, bestCharacter.getScore())
         cv2.waitKey(3)
-        # if loc.size() > 1:
-        #     print("MUSTARD FOUND")
-
-    
-
-
-
         
-        
-
-        # cx, cy = int(M['m10']/M['m00']), int(M['m01']/M['m00'])
-
-        #Check if the area of the shape you want is big enough to be considered
-        # If it is then change the flag for that colour to be True(1)
-            # draw a circle on the contour you're identifying as a blue object as well
-            # cv2.circle(<image>, (<center x>,<center y>), <radius>, <colour (rgb tuple)>, <thickness (defaults to 1)>)
-            # Then alter the values of any flags
-
-        # Be sure to do this for the other colour as well
-        #Show the resultant images you have created. You can show all of them or just the end result if you wish to.
 
 def publisher():
     pub = rospy.Publisher('Cluedo_Result', String, queue_size=10)
@@ -164,7 +148,6 @@ def load_graph(model_file):
     return graph
 
 
-
 def load_labels(label_file):
     label = []
     proto_as_ascii_lines = tf.gfile.GFile(label_file).readlines()
@@ -172,6 +155,19 @@ def load_labels(label_file):
         label.append(l.rstrip())
     return label
 
+
+def createCharacterList():
+    clu_list = []
+    clu_list.append(CleudoCharacter("Mustard", "templates/mustard.png"))
+    clu_list.append(CleudoCharacter("Peacock", "templates/peacock.png"))
+    clu_list.append(CleudoCharacter("Scarlet", "templates/scarlet.png"))
+    clu_list.append(CleudoCharacter("Plum", "templates/plum.png"))
+    clu_list.append(CleudoCharacter("Wrench", "templates/wrench.png"))
+    clu_list.append(CleudoCharacter("Rope", "templates/rope.png"))
+    clu_list.append(CleudoCharacter("Revolver", "templates/scarlet.png"))
+
+    return clu_list
+    
 # Create a node of your class in the main and ensure it stays up and running
 # handling exceptions and such
 def main(args):
