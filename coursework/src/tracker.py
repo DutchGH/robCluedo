@@ -47,23 +47,27 @@ class Tracker():
 		#get poster position
 		self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
 		(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
-
-		#get poster rotation
-		euler = tf.transformations.euler_from_quaternion(rot)
-
-		#get optimal robot position
-		x = trans[0] - (np.cos(euler[2]) * self.length)
-		y = trans[1] - (np.sin(euler[2]) * self.length)
-
-        #get optimal robot rotation
-		theta = math.atan2(trans[1]-y,trans[0]-x)
-
-		#get position and quaternion to send to the robot
-		position = {'x': x, 'y' : y}
-		quaternion = {'r1' : 0.00, 'r2' : 0.00, 'r3' : np.sin(theta/2.0), 'r4' : np.cos(theta/2.0)}
+		
+		#predefined optimal position for robot relative to poster
+		Tav = np.matrix([[0, 0, 1, 0], 
+						[0, 1, 0, 0],
+						[-1, 0, 0, 0.4],
+						[0, 0, 0, 1]])
+		
+		#matrix containing ar_marker position in map coordinate framework
+		Tma = self.tf_listener.fromTranslationRotation(trans, rot)
+		
+		#get matrix map to suitable position in front of the poster
+		Tmv = Tma * Tav
+		
+		#get position and quaternion from matrix
+		position = {'x': Tmv[0,3], 'y' : Tmv[1,3]}
+		quat = tf.transformations.quaternion_from_matrix(Tmv)
+		quaternion = {'r1' : quat[0], 'r2' : quat[1], 'r3' : quat[2], 'r4' : quat[3]}
 		
 		#send command to move to the poster
 		self.navigate.goto(position,quaternion)
+		
 		
 	def position(self):
 		self.look()
