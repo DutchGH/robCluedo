@@ -66,11 +66,11 @@ class Tracker():
 		quaternion = {'r1' : quat[0], 'r2' : quat[1], 'r3' : quat[2], 'r4' : quat[3]}
 		
 		#send command to move to the poster
-		self.navigate.goto(position,quaternion)
+		return self.navigate.goto(position,quaternion)
 		
 		
 	def position(self):
-		self.look()
+		print(self.look())
 
 def main():
 	rospy.init_node('ar_tracker', anonymous=True, log_level=rospy.INFO)
