@@ -8,11 +8,15 @@ import numpy as np
 from go_to_specific_point_on_map import GoToPose 
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from geometry_msgs.msg import Twist
+from std_msgs.msg import String, Bool
+
 
 class Tracker():
 	
 	def __init__(self):
 		self.alvar_sub = rospy.Subscriber("ar_pose_marker", AlvarMarkers, self.findar)
+		# self.image_sub = rospy.Subscriber('Cluedo_Result', String, self.callback)
+		self.arDetectPub = rospy.Publisher('CluARFound', Bool, queue_size=10)
 		self.tf_listener = tf.TransformListener()
 		self.length = 0.4
 		self.navigate = GoToPose()
@@ -24,10 +28,9 @@ class Tracker():
 			p = m.pose.pose
 			#posterx,postery,posterz = p.position.x, p.position.y, p.position.z
 			self.arfound = True
-
+			self.arDetectPub.publish(self.arfound)
 			rospy.sleep(1)
-			
-		return
+		return self.arfound
 
 
 

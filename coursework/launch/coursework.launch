@@ -1,0 +1,5 @@
+<launch>
+	<node pkg="coursework" type="main.py" name="cluedo_main" output="screen"/>
+
+	<node pkg="coursework" type="tracker.py" name="ar_tracker" output="screen"/>
+</launch>
