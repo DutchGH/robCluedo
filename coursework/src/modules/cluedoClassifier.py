@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# This final piece fo skeleton code will be centred around gettign the students to follow a colour and stop upon sight of another one.
-
 from __future__ import division
 import cv2
 import numpy as np
@@ -26,7 +24,7 @@ class CleudoCharacter:
     def setScore(self, score):
         self.templateScore = score
 
-class colourIdentifier():
+class CluedoClassifier():
 
     def __init__(self, pub, rate, graph, labels):
         # Initialise a publisher to publish messages to the robot base
@@ -178,7 +176,7 @@ def main(args):
 
     graph = load_graph(model_file)
     labels = load_labels(label_file)
-    cI = colourIdentifier(pub, rate, graph, labels)
+    cI = CluedoClassifier(pub, rate, graph, labels)
     try:
         rospy.spin()
     except KeyboardInterrupt:
