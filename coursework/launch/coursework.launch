@@ -6,6 +6,7 @@
 		<arg name="map_file" value="$(find coursework)/maps/examplemap.yaml"/>
 	</include>
 	<include file="$(find coursework)/launch/ar_tracking.launch"/>
-	<node pkg="coursework" type="main.py" name="cluedo_main" output="screen"/>
 	<node pkg="coursework" type="tracker.py" name="ar_tracker" output="screen"/>
+	<node pkg="coursework" type="main.py" name="cluedo_main" output="screen"/>
+
 </launch>

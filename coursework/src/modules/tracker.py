@@ -54,7 +54,7 @@ class Tracker():
 		#predefined optimal position for robot relative to poster
 		Tav = np.matrix([[0, 0, 1, 0], 
 						[0, 1, 0, 0],
-						[-1, 0, 0, 0.4],
+						[-1, 0, 0, 0.5],
 						[0, 0, 0, 1]])
 		
 		#matrix containing ar_marker position in map coordinate framework
