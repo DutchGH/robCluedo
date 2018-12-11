@@ -1,5 +1,11 @@
 <launch>
+	<include file="$(find turtlebot_gazebo)/launch/turtlebot_world.launch">
+	    <arg name="world_file" value="$(find lab5)/src/lab5.world"/>
+	</include>
+	<include file="$(find coursework)/launch/simulated_localisation.launch">
+		<arg name="map_file" value="$(find coursework)/maps/examplemap.yaml"/>
+	</include>
+	<include file="$(find coursework)/launch/ar_tracking.launch"/>
 	<node pkg="coursework" type="main.py" name="cluedo_main" output="screen"/>
-
 	<node pkg="coursework" type="tracker.py" name="ar_tracker" output="screen"/>
 </launch>
