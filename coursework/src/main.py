@@ -40,6 +40,18 @@ def main(args):
     cI = robCluedo(pub, rate)
     while not rospy.is_shutdown():
         try:
+            tracker = Tracker()
+            while tracker.postercount() < 2:
+				#change to navigate around the map
+                tracker.rotate()
+                #if arfound is true this means that new poster is found
+                #and it needs to move to that location
+                if tracker.arfound:
+					#returns true when position reached for recognition
+					tracker.position()
+            
+			
+            
             rospy.spin()
         except KeyboardInterrupt:
             print("Shutting down")

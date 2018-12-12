@@ -14,24 +14,36 @@ from std_msgs.msg import String, Bool
 class Tracker():
 	
 	def __init__(self):
+		self.tf_listener = tf.TransformListener()
+		self.length = 0.4
+		self.arfound = False
+		self.navigate = GoToPose()
+		self.arlist = [[0,0],[0,0]]
+		self.postercounter = 0
+		self.posterx = 0
+		self.postery = 0
+		self.posterz = 0
 		self.alvar_sub = rospy.Subscriber("ar_pose_marker", AlvarMarkers, self.findar)
 		# self.image_sub = rospy.Subscriber('Cluedo_Result', String, self.callback)
 		self.arDetectPub = rospy.Publisher('CluARFound', Bool, queue_size=10)
-		self.tf_listener = tf.TransformListener()
-		self.length = 0.4
-		self.navigate = GoToPose()
-		self.arfound = False
 		
 	#find ar_marker then 
 	def findar(self,markers):
-		for m in markers.markers:
-			p = m.pose.pose
-			#posterx,postery,posterz = p.position.x, p.position.y, p.position.z
-			self.arfound = True
-			self.arDetectPub.publish(self.arfound)
-			rospy.sleep(1)
+		# while ar marker is not registered
+		while not self.arfound:		
+				self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
+				(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
+				
+				self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
+				#check if marker already registered
+				if self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2):
+					continue
+				#if poster is in new position
+				else:
+					#new poster found
+					self.arfound = True
+				rospy.sleep(1)
 		return self.arfound
-
 
 
 	def rotate(self):
@@ -39,12 +51,13 @@ class Tracker():
 		rate = rospy.Rate(10) #10hz
 		desired_velocity = Twist()
 		desired_velocity.linear.x = 0.0 # Forward
-		desired_velocity.angular.z = 0.2 # Rotate
-		while not self.arfound:	#change!!
+		desired_velocity.angular.z = 0.4 # Rotate
+		while not self.arfound:
 			pub.publish(desired_velocity)
 			
 		
 	def look(self):
+		#no need for rotate? 
 		self.rotate()
 		
 		#get poster position
@@ -53,9 +66,9 @@ class Tracker():
 		
 		#predefined optimal position for robot relative to poster
 		Tav = np.matrix([[0, 0, 1, 0], 
-						[0, 1, 0, 0],
-						[-1, 0, 0, 0.5],
-						[0, 0, 0, 1]])
+						 [0, 1, 0, 0],
+						 [-1, 0, 0, 0.5],
+						 [0, 0, 0, 1]])
 		
 		#matrix containing ar_marker position in map coordinate framework
 		Tma = self.tf_listener.fromTranslationRotation(trans, rot)
@@ -73,7 +86,31 @@ class Tracker():
 		
 		
 	def position(self):
-		print(self.look())
+		#navigate to poster
+		reachDest = self.look();
+		if(reachDest):
+			#save poster coordinates 
+			self.arlist[self.postercounter] = [self.posterx, self.postery]
+			self.postercounter += 1
+			print self.arlist
+			self.arDetectPub.publish(self.arfound)
+			self.arfound = False
+			rospy.sleep(1)
+			return True
+		return False
+		
+		
+	def nearequal(self,x1,x2,y1,y2,tolerance):
+		if abs(x1-x2) < tolerance and abs(y1-y2) < tolerance:
+			return True
+		else:
+			return False
+			
+	def postercount(self):
+		return self.postercounter
+	
+	def getpostercoordinates(self,x):
+		return self.arlist[x]
 
 def main():
 	rospy.init_node('ar_tracker', anonymous=True, log_level=rospy.INFO)
