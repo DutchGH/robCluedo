@@ -41,16 +41,38 @@ class GoToPose():
         # Allow up to 5 seconds for the action server to come up
         self.move_base.wait_for_server(rospy.Duration(5))
 
+    def goToPosition(self, X, Y, THETA):
+        x = X
+        y = Y
+        theta = THETA
+        position = {'x': x, 'y' : y}
+        quaternion = {'r1' : 0.000, 'r2' : 0.000, 'r3' : np.sin(theta/2.0), 'r4' : np.cos(theta/2.0)}
+
+        rospy.loginfo("Go to (%s, %s) pose", position['x'], position['y'])
+        success = self.goto(position, quaternion)
+
+        if success:
+            return True
+            rospy.loginfo("Hooray, reached the desired pose")
+        else:
+            return False
+            rospy.loginfo("The base failed to reach the desired pose")
+
+        # Sleep to give the last log messages time to be sent
+        rospy.sleep(1)
+
     def goto(self, pos, quat):
 
         # Send a goal
         self.goal_sent = True
+        rospy.loginfo('into GOTO function')
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = 'map'
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose = Pose(Point(pos['x'], pos['y'], 0.000),
                                 Quaternion(quat['r1'], quat['r2'], quat['r3'], quat['r4']))
 
+        # rospy.loginfo("information here " + str(pos) + ' ' + str(quat))
         # Start moving
         self.move_base.send_goal(goal)
 
@@ -74,27 +96,3 @@ class GoToPose():
             self.move_base.cancel_goal()
         rospy.loginfo("Stop")
         rospy.sleep(1)
-
-    def goToPosition(self, X, Y, THETA):
-        try:
-            x = X
-            y = Y
-            theta = THETA
-            position = {'x': x, 'y' : y}
-            quaternion = {'r1' : 0.000, 'r2' : 0.000, 'r3' : np.sin(theta/2.0), 'r4' : np.cos(theta/2.0)}
-
-            rospy.loginfo("Go to (%s, %s) pose", position['x'], position['y'])
-            success = self.goto(position, quaternion)
-
-            if success:
-                return True
-                rospy.loginfo("Hooray, reached the desired pose")
-            else:
-                return False
-                rospy.loginfo("The base failed to reach the desired pose")
-
-            # Sleep to give the last log messages time to be sent
-            rospy.sleep(1)
-
-        except rospy.ROSInterruptException:
-            rospy.loginfo("Ctrl-C caught. Quitting")
