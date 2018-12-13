@@ -6,6 +6,7 @@ from goToPoint import GoToPose
 from geometry_msgs.msg import Twist
 from math import radians
 
+#  test
 class RobotStatus:
 
     def __init__(self):
