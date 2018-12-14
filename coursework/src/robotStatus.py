@@ -5,8 +5,8 @@ import numpy as np
 from goToPoint import GoToPose
 from geometry_msgs.msg import Twist
 from math import radians
+# from modules import Tracker
 
-#  test
 class RobotStatus:
 
     def __init__(self):
@@ -16,8 +16,10 @@ class RobotStatus:
         self.entranceXcoordinate = 0.00
         self.entranceYcoordinate = 0.00
         self.goToPose = GoToPose()
+        # self.tracker = Tracker()
 
     def goToMiddle(self):
+        rospy.loginfo("start of go to middle function")
         success = self.goToPose.goToPosition(self.centreXcoordinate, self.centreYcoordinate, 0.00)
         if success:
             self.rotate(360)
@@ -57,10 +59,10 @@ class RobotStatus:
     		global bump
     		bump = True
 
-
-# -4.8, 3.75
-
-if __name__ == '__main__':
-    rospy.init_node('robotStatus', anonymous=True)
+if __name__ == "__main__":
+    rospy.init_node('robotStatus_main', anonymous=True)
     robotStatus = RobotStatus()
     robotStatus.goToMiddle()
+
+# -4.8, 3.75
+# -5, - 0.6

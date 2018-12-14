@@ -31,18 +31,18 @@ class Tracker():
 	def findar(self,markers):
 		# while ar marker is not registered
 		while not self.arfound:
-				self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
-				(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
+			self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
+			(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
 
-				self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
-				#check if marker already registered
-				if self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2):
-					continue
-				#if poster is in new position
-				else:
-					#new poster found
-					self.arfound = True
-				rospy.sleep(1)
+			self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
+			#check if marker already registered
+			if self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2):
+				continue
+			#if poster is in new position
+			else:
+				#new poster found
+				self.arfound = True
+			rospy.sleep(1)
 		return self.arfound
 
 
@@ -112,13 +112,13 @@ class Tracker():
 	def getpostercoordinates(self,x):
 		return self.arlist[x]
 
-def main():
-	rospy.init_node('ar_tracker', anonymous=True, log_level=rospy.INFO)
-	try:
-		tracker = Tracker()
-		tracker.position()
-	except rospy.ROSInterruptException:
-		pass
-
-if __name__ == '__main__':
-	main()
+# def main():
+# 	rospy.init_node('ar_tracker', anonymous=True, log_level=rospy.INFO)
+# 	try:
+# 		tracker = Tracker()
+# 		tracker.position()
+# 	except rospy.ROSInterruptException:
+# 		pass
+#
+# if __name__ == '__main__':
+# 	main()

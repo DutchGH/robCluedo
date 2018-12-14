@@ -71,9 +71,11 @@ class GoToPose():
         goal.target_pose.pose = Pose(Point(pos['x'], pos['y'], 0.000),
                                 Quaternion(quat['r1'], quat['r2'], quat['r3'], quat['r4']))
 
+        rospy.loginfo("Quaternion %s, Pose %s", quat, pos)
+        rospy.loginfo('goal info: %s ',  goal)
         # Start moving
         self.move_base.send_goal(goal)
-
+        rospy.loginfo("Quaternion %s, Pose %s", quat, pos)
         # Allow TurtleBot up to 60 seconds to complete task
         success = self.move_base.wait_for_result(rospy.Duration(60))
 

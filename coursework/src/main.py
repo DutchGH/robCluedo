@@ -13,6 +13,7 @@ from sensor_msgs.msg import LaserScan
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from kobuki_msgs.msg import BumperEvent
 from std_msgs.msg import String, Bool
+from robotStatus import RobotStatus
 
 
 from modules import Tracker
@@ -40,18 +41,19 @@ def main(args):
     cI = robCluedo(pub, rate)
     while not rospy.is_shutdown():
         try:
-            tracker = Tracker()
-            while tracker.postercount() < 2:
+            robotStatus = RobotStatus()
+            robotStatus.goToMiddle()
+            while robotStatus.tracker.postercount() < 2:
 				#change to navigate around the map
-                tracker.rotate()
+                robotStatus.tracker.rotate()
                 #if arfound is true this means that new poster is found
                 #and it needs to move to that location
-                if tracker.arfound:
+                if robotStatus.tracker.arfound:
 					#returns true when position reached for recognition
-					tracker.position()
-            
-			
-            
+					robotStatus.tracker.position()
+
+
+
             rospy.spin()
         except KeyboardInterrupt:
             print("Shutting down")
