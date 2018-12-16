@@ -5,7 +5,7 @@ import tf
 import time
 import math
 import numpy as np
-from go_to_specific_point_on_map import GoToPose
+from goToPoint import GoToPose
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String, Bool
@@ -18,11 +18,12 @@ class Tracker():
 		self.length = 0.4
 		self.arfound = False
 		self.navigate = GoToPose()
-		self.arlist = [[0,0],[0,0]]
+		self.arlist = [[0,0,0], [0,0,0]]
 		self.postercounter = 0
 		self.posterx = 0
 		self.postery = 0
 		self.posterz = 0
+		self.quatList =[]
 		self.alvar_sub = rospy.Subscriber("ar_pose_marker", AlvarMarkers, self.findar)
 		# self.image_sub = rospy.Subscriber('Cluedo_Result', String, self.callback)
 		self.arDetectPub = rospy.Publisher('CluARFound', Bool, queue_size=10)
@@ -33,7 +34,6 @@ class Tracker():
 		while not self.arfound:
 			self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
 			(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
-
 			self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
 			#check if marker already registered
 			if self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2):
@@ -41,24 +41,26 @@ class Tracker():
 			#if poster is in new position
 			else:
 				#new poster found
-				self.arfound = True
+				self.arlist[self.postercounter] = [self.posterx, self.postery, self.posterz]
+				self.quatList.append(rot)
+				self.postercounter += 1
 			rospy.sleep(1)
 		return self.arfound
 
 
-	def rotate(self):
-		pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
-		rate = rospy.Rate(10) #10hz
-		desired_velocity = Twist()
-		desired_velocity.linear.x = 0.0 # Forward
-		desired_velocity.angular.z = 0.4 # Rotate
-		while not self.arfound:
-			pub.publish(desired_velocity)
+	# def rotate(self):
+	# 	pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
+	# 	rate = rospy.Rate(10) #10hz
+	# 	desired_velocity = Twist()
+	# 	desired_velocity.linear.x = 0.0 # Forward
+	# 	desired_velocity.angular.z = 0.4 # Rotate
+	# 	while not self.arfound:
+	# 		pub.publish(desired_velocity)
 
 
 	def look(self):
-		#no need for rotate?
-		self.rotate()
+		# #no need for rotate?
+		# self.rotate()
 
 		#get poster position
 		self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
@@ -90,8 +92,6 @@ class Tracker():
 		reachDest = self.look();
 		if(reachDest):
 			#save poster coordinates
-			self.arlist[self.postercounter] = [self.posterx, self.postery]
-			self.postercounter += 1
 			print self.arlist
 			self.arDetectPub.publish(self.arfound)
 			self.arfound = False

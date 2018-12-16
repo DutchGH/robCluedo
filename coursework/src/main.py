@@ -13,7 +13,7 @@ from sensor_msgs.msg import LaserScan
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from kobuki_msgs.msg import BumperEvent
 from std_msgs.msg import String, Bool
-from robotStatus import RobotStatus
+from modules import robotStatus
 
 
 from modules import Tracker
@@ -35,22 +35,22 @@ def publisher(name, type):
 
 	return pub, rate
 
-def main(args):
+def main():
     rospy.init_node('cluedo_main', anonymous=True)
     pub, rate = publisher("CluedoMain", Bool)
     cI = robCluedo(pub, rate)
     while not rospy.is_shutdown():
         try:
-            robotStatus = RobotStatus()
-            robotStatus.goToMiddle()
-            while robotStatus.tracker.postercount() < 2:
+            robotRunning = robotStatus.RobotStatus()
+            robotRunning.goToMiddle()
+            while robotRunning.tracker.postercount() < 2:
 				#change to navigate around the map
-                robotStatus.tracker.rotate()
+                robotRunning.tracker.rotate()
                 #if arfound is true this means that new poster is found
                 #and it needs to move to that location
-                if robotStatus.tracker.arfound:
+                if robotRunning.tracker.arfound:
 					#returns true when position reached for recognition
-					robotStatus.tracker.position()
+					robotRunning.tracker.position()
 
 
 
@@ -59,4 +59,4 @@ def main(args):
             print("Shutting down")
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()
