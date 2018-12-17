@@ -30,6 +30,14 @@ class FollowWall:
         self.left_last = Float32()
         self.right_last = Float32()
 
+    def switch_movement(self, direction):
+        self.switch = {
+            1: "Ahead",
+            2: "Left",
+            3: "Right"
+        }
+        return self.switch.get(direction, "nothing")
+
     def laserscan_callback(self, laser_data):
         self.centre.data= laser_data.ranges[320]
         rospy.loginfo("centre %f", laser_data.ranges[320])
@@ -45,48 +53,161 @@ class FollowWall:
         while not rospy.is_shutdown():
             if (self.laserscan):
                 # minLaserValue = min(min(self.laserscan.ranges[170:190], self.laserscan.ranges[150:170]))
-                # self.findWall(minLaserValue)
-                self.followWall()
+                self.findClosestWall()
 
             self.rate.sleep()
-            # rospy.spin()
 
-    def findClosestWall():
-        print('Closest Wall')
-        # go to it and followWall()
-        # if get too far away from wall findClosestWall()
+    def findClosestWall(self):
+        print(' Find closest wall ')
+        # find closest wall and go to it
+        # cases in which one of the values cannot be defined
+        if (np.isnan(self.centre.data)):
+            if (self.left.data < self.right.data):
+                # closest wall is on the left
+                print(self.switch_movement(2))
+                self.followWall(self.switch_movement(2))
+            else:
+                # closest wall is on the right
+                print(self.switch_movement(3))
+                self.followWall(self.switch_movement(3))
+        elif (np.isnan(self.left.data)):
+            if (self.centre.data < self.right.data):
+                # closest wall is ahead
+                print(self.switch_movement(1))
+                self.followWall(self.switch_movement(1))
+            else:
+                # closest wall is on the right
+                print(self.switch_movement(3))
+                self.followWall(self.switch_movement(3))
+        elif (np.isnan(self.right.data)):
+            if (self.centre.data < self.left.data):
+                # closest wall is ahead
+                print(self.switch_movement(1))
+                self.followWall(self.switch_movement(1))
+            else:
+                # closest wall is on the left
+                print(self.switch_movement(2))
+                self.followWall(self.switch_movement(2))
+        else:
+            # all values can be defined
+            # find smallest value
+            if (self.centre.data < self.left.data and self.centre.data < self.right.data):
+                # closest wall is ahead
+                print(self.switch_movement(1))
+                self.followWall(self.switch_movement(1))
+            elif (self.left.data < self.centre.data and self.left.data < self.right.data):
+                # closest wall is on the left
+                print(self.switch_movement(2))
+                self.followWall(self.switch_movement(2))
+            elif (self.right.data < self.centre.data and self.right.data < self.left.data):
+                # closest wall is on the right
+                print(self.switch_movement(3))
+                self.followWall(self.switch_movement(3))
 
-    def followWall(self):
-        if (self.laserscan):
-            print('START')
-            if (self.centre.data > 1):
-                # move forward
-                print('centre > 1')
-                self.moveForward()
-                if (self.left.data < 0.8):
-                    # close to left object, turn right
-                    print('left < 0.8')
-                    self.rotateRight()
-                elif (self.right.data < 0.8):
-                    # close to right object, turn left
-                    print('right < 0.8')
-                    self.rotateLeft()
+    def followWall(self, direction):
+        # follow closest wall
+        if self.laserscan:
+            if (direction == 'Left') :
+                self.movementWallLeft()
+            elif (direction == 'Ahead'):
+                self.movementWallAhead()
+            else:
+                self.movementWallRight()
+
+    # movement when the closest wall is ahead
+    def movementWallAhead(self):
+        if (self.centre.data > 0.8 or np.isnan(self.centre.data)):
+            # move forward
+            print('centre > 0.8')
+            self.moveForward()
+            if (np.isnan(self.left.data)):
+                print ('left nan')
+                self.rotateRight()
+            elif (np.isnan(self.right.data)):
+                print ('right nan')
+                self.rotateLeft()
+        else :
+            # too close to wall ahead
+            if (np.isnan(self.left.data)):
+                print ('left nan')
+                self.rotateRight()
+            elif (np.isnan(self.right.data)):
+                print ('right nan')
+                self.rotateLeft()
+            elif (self.left.data < self.right.data and self.left.data > 0.9):
+                print('left < right')
+                self.rotateLeft()
+            else:
+                print ('right < 0.8')
+                self.rotateRight()
+
+    # movement when the closest wall is to the left
+    def movementWallLeft(self):
+        if (self.centre.data > 0.8 or np.isnan(self.centre.data)):
+            # move forward
+            print('centre > 1')
+            self.moveForward()
+            if (self.right.data < 0.3):
+                # close to right object, turn left
+                print('right < 0.3')
+                self.rotateLeft()
+            elif (self.left.data > 1.5):
+                # too far from the wall
+                print('left > 0.6')
+                self.rotateLeft()
+            elif (self.left.data < 0.5):
+                # close to left object, turn right
+                print('left < 0.4')
+                self.rotateRight()
             else :
-                print(' else ')
-                if (self.left.data > 0.8):
-                    print('left > 0.8')
-                    self.rotateRight()
-                elif (self.right.data > 0.8):
-                    print('right > 0.8')
-                    self.rotateLeft()
-                elif (self.left.data > self.right.data):
-                    print('left > right')
-                    self.rotateRight()
-                else :
-                    print ('right > left')
-                    self.rotateLeft()
+                print (' rotate right ')
+                self.moveForward()
+        else :
+            print(' else ')
+            if (self.left.data < 0.5 or np.isnan(self.left.data)):
+                print('left < 0.4')
+                self.rotateRight()
+            elif (self.right.data < 0.5  or np.isnan(self.right.data)):
+                print('right < 0.4')
+                self.rotateLeft()
+            else :
+                print (' rotate left ')
+                self.rotateRight()
 
-        self.rate.sleep()
+    # movement when the closest wall is to the right
+    def movementWallRight(self):
+        if (self.centre.data > 0.8 or np.isnan(self.centre.data)):
+            # move forward
+            print('centre > 1')
+            self.moveForward()
+            if (self.left.data < 0.3):
+                # too close to left object, turn right
+                print('left < 0.3')
+                self.rotateRight()
+            elif (self.right.data > 1.5):
+                # too far from the wall, get closer
+                print('right > 0.8')
+                self.rotateRight()
+            elif (self.right.data < 0.5):
+                # too close to the wall, turn left
+                print('right < 0.4')
+                self.rotateLeft()
+            else :
+                print(' rotate left ')
+                self.moveForward()
+        else :
+            print(' else ')
+            if (self.right.data < 0.5 or np.isnan(self.right.data)):
+                # too close to the wall, turn left
+                print('right < 0.4')
+                self.rotateLeft()
+            elif (self.left.data < 0.5 or np.isnan(self.left.data)):
+                # too close to the left, turn right
+                print('left < 0.4')
+                self.rotateRight()
+            else :
+                print (' move forward ')
+                self.rotateLeft()
 
     def stop(self):
         self.velocity.linear.x = 0.0
