@@ -3,8 +3,6 @@
 import roslib
 import rospy
 import numpy as np
-import math
-from math import radians
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
@@ -21,14 +19,10 @@ class FollowWall:
         self.velocity = Twist()
         self.laserscan = None
 
-        self.spinSpeed = 0.1
-        self.wallDist = 0.9
         self.angle = 1.57284
         self.centre = Float32()
         self.left = Float32()
         self.right = Float32()
-        self.left_last = Float32()
-        self.right_last = Float32()
 
     def switch_movement(self, direction):
         self.switch = {
@@ -39,6 +33,7 @@ class FollowWall:
         return self.switch.get(direction, "nothing")
 
     def laserscan_callback(self, laser_data):
+        # set laserscan ranges for middle, left and right to robot
         self.centre.data= laser_data.ranges[320]
         rospy.loginfo("centre %f", laser_data.ranges[320])
         self.left.data= laser_data.ranges[639]
