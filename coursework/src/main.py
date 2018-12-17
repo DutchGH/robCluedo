@@ -25,7 +25,6 @@ class robCluedo:
         self.murderWeapon = None
         print("Up and Running")
 
-
     def callback(self, data):
         print(data.data)
 
@@ -39,19 +38,35 @@ def main():
     rospy.init_node('cluedo_main', anonymous=True)
     pub, rate = publisher("CluedoMain", Bool)
     cI = robCluedo(pub, rate)
-    while not rospy.is_shutdown():
+    running = True
+
+    while running:
         try:
             robotRunning = robotStatus.RobotStatus()
             robotRunning.goToMiddle()
-            while robotRunning.tracker.postercount() < 2:
-				#change to navigate around the map
-                robotRunning.tracker.rotate()
-                #if arfound is true this means that new poster is found
-                #and it needs to move to that location
-                if robotRunning.tracker.arfound:
-					#returns true when position reached for recognition
-					robotRunning.tracker.position()
-
+            if robotRunning.tracker.postercounter == 1:
+                print('before moving to position')
+                goToDest = robotRunning.tracker.position(0)
+                if goToDest:
+                    ########## Jake #########
+                    #### infront of the poster mate insert your code here
+                    ########## Jake #########
+                    print('we\'re in front of the poster')
+                    running = False
+            if robotRunning.tracker.postercounter == 2:
+                for i in range(0,2):
+                    gotToDest = robotRunning.tracker.position(i)
+                    if goToDest:
+                        print('000000')
+                        ########## Jake #########
+                        #### infront of the poster mate insert your code here
+                        ########## Jake #########
+            else:
+                print('00000')
+                ###### Emily ######
+                ##### Insert wall following here
+                ##### Jake ######
+                #### check images if found
 
 
             rospy.spin()

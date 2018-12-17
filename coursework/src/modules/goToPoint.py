@@ -48,7 +48,7 @@ class GoToPose():
         position = {'x': x, 'y' : y}
         quaternion = {'r1' : 0.000, 'r2' : 0.000, 'r3' : np.sin(theta/2.0), 'r4' : np.cos(theta/2.0)}
 
-        rospy.loginfo("Go to (%s, %s) pose", position['x'], position['y'])
+        # rospy.loginfo("Go to (%s, %s) pose", position['x'], position['y'])
         success = self.goto(position, quaternion)
 
         if success:
@@ -70,12 +70,8 @@ class GoToPose():
         goal.target_pose.header.stamp = rospy.Time.now()
         goal.target_pose.pose = Pose(Point(pos['x'], pos['y'], 0.000),
                                 Quaternion(quat['r1'], quat['r2'], quat['r3'], quat['r4']))
-
-        rospy.loginfo("Quaternion %s, Pose %s", quat, pos)
-        rospy.loginfo('goal info: %s ',  goal)
         # Start moving
         self.move_base.send_goal(goal)
-        rospy.loginfo("Quaternion %s, Pose %s", quat, pos)
         # Allow TurtleBot up to 60 seconds to complete task
         success = self.move_base.wait_for_result(rospy.Duration(60))
 
@@ -94,5 +90,4 @@ class GoToPose():
     def shutdown(self):
         if self.goal_sent:
             self.move_base.cancel_goal()
-        rospy.loginfo("Stop")
         rospy.sleep(1)

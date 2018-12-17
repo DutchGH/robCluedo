@@ -18,6 +18,7 @@ class RobotStatus:
         self.goToPose = GoToPose()
         self.tracker = Tracker()
 
+
     def goToMiddle(self):
         rospy.loginfo("start of go to middle function")
         success = self.goToPose.goToPosition(self.centreXcoordinate, self.centreYcoordinate, 0.00)
@@ -36,6 +37,7 @@ class RobotStatus:
         else:
             rospy.loginfo("The Robot couldn't get this this position")
 
+
     def rotate(self, angleValue):
     	movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
     	rate = rospy.Rate(10) #10hz
@@ -50,23 +52,16 @@ class RobotStatus:
             movement_pub.publish(desired_velocity)
             t1 = rospy.Time.now().to_sec()
             current_angle = 2*(t1-t0)
-        print(self.tracker.postercounter)
-        print(self.tracker.arlist[0])
-
 
         desired_velocity.angular.z = 0
         movement_pub.publish(desired_velocity)
 
-
-    def processBump(data):
-    	if (data.state == BumperEvent.PRESSED):
-    		global bump
-    		bump = True
-
-if __name__ == "__main__":
-    rospy.init_node('robotStatus_main', anonymous=True)
-    robotStatus = RobotStatus()
-    robotStatus.goToMiddle()
-
-# -4.8, 3.75
-# -5, - 0.6
+    def produceTxtFile(self):
+        file = open('ImageInformation.txt', 'w')
+        for i in range(1,3):
+            file.write('%s image information', i)
+            file.write('image location:')
+            # name of image here Jake
+            file.write(self.tracker.arlist[i])
+            file.write(self.tracker.quatList[i])
+            file.close()

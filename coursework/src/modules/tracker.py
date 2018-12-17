@@ -18,7 +18,7 @@ class Tracker():
 		self.length = 0.4
 		self.arfound = False
 		self.navigate = GoToPose()
-		self.arlist = [[0,0,0], [0,0,0]]
+		self.arlist = []
 		self.postercounter = 0
 		self.posterx = 0
 		self.postery = 0
@@ -36,35 +36,31 @@ class Tracker():
 			(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
 			self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
 			#check if marker already registered
-			if self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2):
-				continue
+			if len(self.arlist) > 0:
+				for i in self.arlist:
+					for j in i:
+						samePoster = self.nearequal(self.posterx, i[0], self.postery, i[1], 0.2)
+						if samePoster:
+							continue
+						else:
+							#new poster found
+							self.addPoster(trans, rot)
+							self.postercounter += 1
 			#if poster is in new position
 			else:
 				#new poster found
-				self.arlist[self.postercounter] = [self.posterx, self.postery, self.posterz]
-				self.quatList.append(rot)
+				self.addPoster(trans, rot)
 				self.postercounter += 1
 			rospy.sleep(1)
 		return self.arfound
 
+	def addPoster(self, trans, rot):
+		self.arlist.append(trans)
+		self.quatList.append(rot)
 
-	# def rotate(self):
-	# 	pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
-	# 	rate = rospy.Rate(10) #10hz
-	# 	desired_velocity = Twist()
-	# 	desired_velocity.linear.x = 0.0 # Forward
-	# 	desired_velocity.angular.z = 0.4 # Rotate
-	# 	while not self.arfound:
-	# 		pub.publish(desired_velocity)
-
-
-	def look(self):
-		# #no need for rotate?
-		# self.rotate()
-
-		#get poster position
-		self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
-		(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
+	def look(self, posterNumber):
+		trans = self.arlist[posterNumber]
+		rot = self.quatList[posterNumber]
 
 		#predefined optimal position for robot relative to poster
 		Tav = np.matrix([[0, 0, 1, 0],
@@ -87,12 +83,12 @@ class Tracker():
 		return self.navigate.goto(position,quaternion)
 
 
-	def position(self):
+	def position(self, posterId):
 		#navigate to poster
-		reachDest = self.look();
+		reachDest = self.look(posterId);
 		if(reachDest):
 			#save poster coordinates
-			print self.arlist
+			# print self.arlist
 			self.arDetectPub.publish(self.arfound)
 			self.arfound = False
 			rospy.sleep(1)
@@ -111,14 +107,3 @@ class Tracker():
 
 	def getpostercoordinates(self,x):
 		return self.arlist[x]
-
-# def main():
-# 	rospy.init_node('ar_tracker', anonymous=True, log_level=rospy.INFO)
-# 	try:
-# 		tracker = Tracker()
-# 		tracker.position()
-# 	except rospy.ROSInterruptException:
-# 		pass
-#
-# if __name__ == '__main__':
-# 	main()
