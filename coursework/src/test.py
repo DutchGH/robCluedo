@@ -49,7 +49,8 @@ class FollowWall:
         while not rospy.is_shutdown():
             if (self.laserscan):
                 # minLaserValue = min(min(self.laserscan.ranges[170:190], self.laserscan.ranges[150:170]))
-                self.findClosestWall()
+                # self.findClosestWall()
+                self.followWall('Left')
 
             self.rate.sleep()
 
@@ -163,49 +164,78 @@ class FollowWall:
 
     # movement when the closest wall is to the left
     def movementWallLeft(self):
-        if (self.centre.data > 1.8):
+        if (self.centre.data > 1.8 or np.isnan(self.centre.data)):
             # move forward
             print('centre > 1')
             self.moveForward()
-            if (self.right.data < 0.3):
-                # close to right object, turn left
-                print('right < 0.3')
-                self.rotateLeft()
-            elif (self.left.data > 1.8):
+            if (self.left.data > 1.8 or np.isnan(self.left.data)):
                 # too far from the wall
-                print('left > 0.6')
+                print('left > 1.8')
                 self.rotateLeft()
             elif (self.left.data < 0.6):
                 # close to left object, turn right
-                print('left < 0.4')
+                print('left < 0.8')
                 self.rotateRight()
-            else :
-                print (' move forward ')
-                self.rotateRight()
-                self.stop()
-                self.moveForward()
+            elif (self.right.data < 0.3):
+                # close to right object, turn left
+                print('right < 0.8')
+                self.rotateLeft()
         else :
             print(' else ')
-            if (np.isnan(self.centre.data)):
-                # if (np.isnan(self.right.data)):
-                #     self.rotateRight()
-                # else :
-                # move Forward
-                self.moveBackwards()
-                self.rotateRight()
-            elif (self.right.data < 1 and self.left.data < 1):
-                # probably stuck in a corner
-                print('stuck')
-                self.moveBackwards()
-            elif (self.left.data < 1.3 or np.isnan(self.left.data)):
-                print('left < 0.4')
-                self.rotateRight()
-            elif (self.right.data < 1.2  or np.isnan(self.right.data)):
-                print('right < 0.4')
+            if (self.left.data > 0.7):
+                print('left > 0.8')
                 self.rotateLeft()
+            # elif (self.right.data > 0.8):
+            #     print('right > 0.8')
+            #     self.rotateLeft()
+            elif (self.left.data > self.right.data):
+                print('left > right')
+                self.rotateRight()
             else :
-                print (' move back ')
-                self.stuck_getOut()
+                print ('right > left')
+                self.rotateLeft()
+        #     # move forward
+        #     print('centre > 1')
+        #     self.moveForward()
+        #     if (self.right.data < 0.3):
+        #         # close to right object, turn left
+        #         print('right < 0.3')
+        #         self.rotateLeft()
+        #     elif (self.left.data > 1.8):
+        #         # too far from the wall
+        #         print('left > 0.6')
+        #         self.rotateLeft()
+        #     elif (self.left.data < 0.6):
+        #         # close to left object, turn right
+        #         print('left < 0.4')
+        #         self.rotateRight()
+        #     else :
+        #         print (' move forward ')
+        #         self.rotateRight()
+        #         self.stop()
+        #         self.moveForward()
+        # else :
+        #     print(' else ')
+        #     if (np.isnan(self.centre.data)):
+        #         # if (np.isnan(self.right.data)):
+        #         #     self.rotateRight()
+        #         # else :
+        #         # move Forward
+        #         self.moveBackwards()
+        #         self.rotateRight()
+        #     elif (self.right.data < 1 and self.left.data < 1):
+        #         # probably stuck in a corner
+        #         print('stuck')
+        #         self.moveBackwards()
+        #     elif (self.left.data < 1.3 or np.isnan(self.left.data)):
+        #         print('left < 0.4')
+        #         self.rotateRight()
+        #     elif (self.right.data < 1.2  or np.isnan(self.right.data)):
+        #         print('right < 0.4')
+        #         self.rotateLeft()
+        #     else :
+        #         print (' move back ')
+        #         self.stuck_getOut()
 
     # movement when the closest wall is to the right
     def movementWallRight(self):
