@@ -6,6 +6,7 @@ from goToPoint import GoToPose
 from geometry_msgs.msg import Twist
 from math import radians
 from modules import Tracker
+from modules import CluedoClassifier
 
 class RobotStatus:
 
@@ -17,6 +18,7 @@ class RobotStatus:
         self.entranceYcoordinate = 0.00
         self.goToPose = GoToPose()
         self.tracker = Tracker()
+        self.cluedoClassifier = CluedoClassifier()
 
 
     def goToMiddle(self):
@@ -59,9 +61,10 @@ class RobotStatus:
     def produceTxtFile(self):
         file = open('ImageInformation.txt', 'w')
         for i in range(1,3):
-            file.write('%s image information', i)
-            file.write('image location:')
+            file.write('Image %s information', i)
+            file.write('image name:')
             # name of image here Jake
+            file.write('image location:')
             file.write(self.tracker.arlist[i])
             file.write(self.tracker.quatList[i])
             file.close()

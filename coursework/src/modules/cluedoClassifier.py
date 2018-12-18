@@ -33,7 +33,7 @@ class CluedoClassifier():
         self.rate = rate
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.callback)
-        
+
 
         #Vars for image detection - courtesy of Andy Bullpit (School of Computing)
         self.input_height = 224
@@ -50,7 +50,7 @@ class CluedoClassifier():
         self.output_name = "import/" + self.output_layer
         self.input_op = self.graph.get_operation_by_name(self.input_name)
         self.output_op = self.graph.get_operation_by_name(self.output_name)
-        
+
 
 
 
@@ -65,8 +65,8 @@ class CluedoClassifier():
 
     def callback(self, data):
         clu_list = createCharacterList()
- 
-        
+
+
         #Conv NN - Not having too much success with this if I'm honest
         # with tf.Session(graph = self.graph) as sess:
         #     try:
@@ -97,7 +97,7 @@ class CluedoClassifier():
         #         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #         #     sess.close()
         #         #     break
-        
+
         #........ TEMPLATE MATCHING ....................#
         bestCharacter = CleudoCharacter(None, None)
         cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -126,7 +126,7 @@ class CluedoClassifier():
         cv2.imshow('WINDOW2', img)
         print (bestCharacter.name, bestCharacter.getScore())
         cv2.waitKey(3)
-        
+
 
 def publisher():
     pub = rospy.Publisher('Cluedo_Result', String, queue_size=10)
@@ -165,11 +165,10 @@ def createCharacterList():
     clu_list.append(CleudoCharacter("Revolver", "templates/scarlet.png"))
 
     return clu_list
-    
+
 # Create a node of your class in the main and ensure it stays up and running
 # handling exceptions and such
 def main(args):
-    rospy.init_node('cluedo_detector', anonymous=True)
     pub, rate = publisher()
     model_file = "final_graph.pb"
     label_file = "output_labels.txt"

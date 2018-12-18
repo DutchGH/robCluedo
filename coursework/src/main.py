@@ -14,9 +14,9 @@ from ar_track_alvar_msgs.msg import AlvarMarkers
 from kobuki_msgs.msg import BumperEvent
 from std_msgs.msg import String, Bool
 from modules import robotStatus
-
-
 from modules import Tracker
+from modules import cluedoClassifier
+
 
 class robCluedo:
     def __init__(self, pub, rate):
@@ -44,31 +44,37 @@ def main():
         try:
             robotRunning = robotStatus.RobotStatus()
             robotRunning.goToMiddle()
-            if robotRunning.tracker.postercounter == 1:
-                print('before moving to position')
-                goToDest = robotRunning.tracker.position(0)
-                if goToDest:
-                    ########## Jake #########
-                    #### infront of the poster mate insert your code here
-                    ########## Jake #########
-                    print('we\'re in front of the poster')
-                    running = False
+
             if robotRunning.tracker.postercounter == 2:
                 for i in range(0,2):
                     gotToDest = robotRunning.tracker.position(i)
                     if goToDest:
                         print('000000')
+                        robotRunning.cluedoClassifier.imageAnalysis()
+                        print('finished image analysis')
                         ########## Jake #########
                         #### infront of the poster mate insert your code here
                         ########## Jake #########
+                        ###write file
+                        ##end program
+                        running = False
+            if robotRunning.tracker.postercounter <= 1:
+                    print('00000')
+                    if robotRunning.tracker.postercounter == 1:
+                        print('before moving to position')
+                        goToDest = robotRunning.tracker.position(0)
+                        if goToDest:
+                            cluedoClassifier.main()
+                            ##### Jake ######
+                            #### check images if found
+                    ### run wall following alogrithms
+                    ###### Emily ######
+                    ##### Insert wall following here
+                    ##### Jake ######
+                    #### check images if found
+                    ### running = False
             else:
-                print('00000')
-                ###### Emily ######
-                ##### Insert wall following here
-                ##### Jake ######
-                #### check images if found
-
-
+                ###commit suicide 
             rospy.spin()
         except KeyboardInterrupt:
             print("Shutting down")
