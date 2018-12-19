@@ -29,6 +29,7 @@ class robCluedo:
         self.rawImage = None
         self.murderer = None
         self.murderWeapon = None
+
         print("Up and Running")
 
     def callback(self, data):
@@ -61,6 +62,7 @@ def main():
         robotRunning = robotStatus.RobotStatus()
         # robotRunning.goToMiddle()
         while running:
+            print('running')
             if robotRunning.tracker.postercounter == 2:
                 print(' poster counter 2. Done!')
                 for i in range(0,2):
@@ -90,7 +92,8 @@ def main():
                 robotRunning.goToEntrance()
                 # while robotRunning.tracker.postercounter < 2:
                 #     print('poster counter < 2')
-                followWall = follow_wall.FollowWall()
+                followWall = robotRunning.followWall.start()
+                print('exit --')
                 if (robotRunning.tracker.postercounter == 2):
                     goToDest = robotRunning.tracker.position(1)
                     if goToDest:
@@ -99,9 +102,11 @@ def main():
                 running = True
             else:
                 robotRunning.goToEntrance()
+                robotRunning.followWall.startCounter()
                 # while robotRunning.tracker.postercounter < 2:
                 #     print('poster counter < 2')
-                followWall = follow_wall.FollowWall()
+                followWall = robotRunning.followWall.start()
+                print('exit')
                 if robotRunning.tracker.postercounter == 1:
                     robotRunning.stopMovement()
                     goToDest = robotRunning.tracker.position(0)

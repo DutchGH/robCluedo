@@ -4,6 +4,7 @@ import rospy
 import numpy as np
 import math
 import time
+from math import radians
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
@@ -11,11 +12,9 @@ from std_msgs.msg import Float32
 class FollowWall():
     def __init__(self):
         # subscribe to laserscan topic
-        rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
         self.velocityPublish = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size = 10)
 
         self.velocity = Twist()
-        self.laserscan = None
 
         self.wall_dist = 0.13
         self.max_speed = 0.3
@@ -24,13 +23,22 @@ class FollowWall():
         self.d = 0.5
         self.angle = 1
 
+        self.counter = 0
+
         self.e = 0
         # Angle, at which was measured the shortest distance
         self.angle_minDist = 0
         self.dist_front = 0
         self.diff_e = 0
 
+    def start(self):
+        self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
+
+    def stop(self):
+        self.laserscanSubs.unregister()
+
     def laserscan_callback(self, scan_data):
+        self.counter += 1
         # append non nan values to a new list
         laserValues = []
         for i in xrange(0, len(scan_data.ranges)):
@@ -55,17 +63,43 @@ class FollowWall():
 
         self.movement()
 
-
     def movement(self):
-        # PD controller
-        self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
-        if (self.dist_front < self.wall_dist):
-            self.velocity.linear.x = 0
-        elif (self.dist_front < self.wall_dist * 2):
-            self.velocity.linear.x = 0.5 * self.max_speed
-        elif (abs(self.angle_minDist) > 1.75):
-            self.velocity.linear.x = 0.4 * self.max_speed
-        else:
-            self.velocity.linear.x = self.max_speed
+        if (self.startCntr == True):
+            if (self.counter == 50):
+                print('stop')
+                self.rotate()
+                self.stop()
+                self.counter = 0
+                # return
+                self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
+            else:
+                # PD controller
+                self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
+                if (self.dist_front < self.wall_dist):
+                    self.velocity.linear.x = 0
+                elif (self.dist_front < self.wall_dist * 2):
+                    self.velocity.linear.x = 0.5 * self.max_speed
+                elif (abs(self.angle_minDist) > 1.75):
+                    self.velocity.linear.x = 0.4 * self.max_speed
+                else:
+                    self.velocity.linear.x = self.max_speed
 
+                self.velocityPublish.publish(self.velocity)
+
+    def startCounter(self):
+        self.startCntr = True
+
+    def rotate(self):
+        end_angle = radians(360)
+        self.velocity.linear.x = 0
+        self.velocity.angular.z = 0.5
+        t0 = rospy.Time.now().to_sec()
+        current_angle = 0
+
+        while current_angle <= end_angle:
+            self.velocityPublish.publish(self.velocity)
+            t1 = rospy.Time.now().to_sec()
+            current_angle = 0.5*(t1-t0)
+
+        self.velocity.angular.z = 0
         self.velocityPublish.publish(self.velocity)
