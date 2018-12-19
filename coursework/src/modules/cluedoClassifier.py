@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 from __future__ import division
+import os
+
 import cv2
 import numpy as np
 import rospy
 import sys
 import tensorflow as tf
+import copy
 
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import Image
@@ -48,7 +51,8 @@ class CluedoClassifier():
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         img2 = img.copy()
         for clu in clu_list:
-            template = cv2.imread(clu.fn,0)
+            template = cv2.imread(str(clu.fn),0)
+            print(str(clu.fn))
             template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
             w, h = template.shape[::-1]
 
@@ -69,16 +73,20 @@ class CluedoClassifier():
         # print (bestCharacter.name, bestCharacter.getScore())
         # cv2.waitKey(3)
 
+    
 def createCharacterList():
     clu_list = []
-    clu_list.append(CleudoCharacter("Mustard", "templates/mustard.png"))
-    clu_list.append(CleudoCharacter("Peacock", "templates/peacock.png"))
-    clu_list.append(CleudoCharacter("Scarlet", "templates/scarlet.png"))
-    clu_list.append(CleudoCharacter("Plum", "templates/plum.png"))
-    clu_list.append(CleudoCharacter("Wrench", "templates/wrench.png"))
-    clu_list.append(CleudoCharacter("Rope", "templates/rope.png"))
-    clu_list.append(CleudoCharacter("Revolver", "templates/scarlet.png"))
+    clu_list.append(CleudoCharacter("Mustard", os.path.dirname(os.path.abspath(__file__)) + '/templates/mustard.png'))
+    clu_list.append(CleudoCharacter("Peacock", os.path.dirname(os.path.abspath(__file__)) +'/templates/peacock.png'))
+    clu_list.append(CleudoCharacter("Scarlet", os.path.dirname(os.path.abspath(__file__)) +'/templates/scarlet.png'))
+    clu_list.append(CleudoCharacter("Plum", os.path.dirname(os.path.abspath(__file__)) +'/templates/plum.png'))
+    clu_list.append(CleudoCharacter("Wrench", os.path.dirname(os.path.abspath(__file__)) +'/templates/wrench.png'))
+    clu_list.append(CleudoCharacter("Rope", os.path.dirname(os.path.abspath(__file__)) +'/templates/rope.png'))
+    clu_list.append(CleudoCharacter("Revolver", os.path.dirname(os.path.abspath(__file__)) +'/templates/scarlet.png'))
 
     return clu_list
+
+
+
 
 
