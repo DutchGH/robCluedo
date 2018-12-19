@@ -12,14 +12,17 @@ class RobotStatus:
 
     def __init__(self):
         self.run = True
-        self.centreXcoordinate = -4.8
-        self.centreYcoordinate = -0.6
-        self.entranceXcoordinate = 0.00
-        self.entranceYcoordinate = 0.00
+        self.centreXcoordinate = 6.5
+        self.centreYcoordinate = 0
+        self.entranceXcoordinate = 5
+        self.entranceYcoordinate = -0.1
         self.goToPose = GoToPose()
+        # self.followWall = FollowWall()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()
-
+    	self.movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
+    	self.rate = rospy.Rate(10) #10hz
+        self.desired_velocity = Twist()
 
     def goToMiddle(self):
         rospy.loginfo("start of go to middle function")
@@ -40,23 +43,25 @@ class RobotStatus:
             rospy.loginfo("The Robot couldn't get this this position")
 
 
+    def stopMovement(self):
+        self.desired_velocity.linear.x = 0
+        self.desired_velocity.angular.z = 0
+        self.movement_pub.publish(self.desired_velocity)
+
     def rotate(self, angleValue):
-    	movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
-    	rate = rospy.Rate(10) #10hz
         end_angle = radians(angleValue)
-    	desired_velocity = Twist()
-        desired_velocity.linear.x = 0
-        desired_velocity.angular.z = 2
+        self.desired_velocity.linear.x = 0
+        self.desired_velocity.angular.z = 0.5
         t0 = rospy.Time.now().to_sec()
         current_angle = 0
 
         while current_angle <= end_angle:
-            movement_pub.publish(desired_velocity)
+            self.movement_pub.publish(self.desired_velocity)
             t1 = rospy.Time.now().to_sec()
             current_angle = 2*(t1-t0)
 
-        desired_velocity.angular.z = 0
-        movement_pub.publish(desired_velocity)
+        self.desired_velocity.angular.z = 0
+        self.movement_pub.publish(self.desired_velocity)
 
     def produceTxtFile(self):
         file = open('ImageInformation.txt', 'w')

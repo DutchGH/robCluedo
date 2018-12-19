@@ -17,7 +17,8 @@ from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String, Bool
 from modules import robotStatus
 from modules import Tracker
-from modules import cluedoClassifier
+from modules import CluedoClassifier
+from modules import follow_wall
 
 
 class robCluedo:
@@ -33,7 +34,7 @@ class robCluedo:
 
     def callback(self, data):
         print(data.data)
-    
+
     def ImageResult(self, data):
         print(data.data)
 
@@ -79,17 +80,39 @@ def main():
                         ###write file
                         ##end program
                         running = False
-            if robotRunning.tracker.postercounter <= 1:
-                    print('00000')
+            if robotRunning.tracker.postercounter == 1:
+                print('before moving to position')
+                goToDest = robotRunning.tracker.position(0)
+                if goToDest:
+                    # data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
+                    # print(data)
+                    print('scanning image exciting...')
+                    # cluedoClassifier.main()
+                    ##### Jake ######
+                    #### check images if found
+                else:
+                    robotRunning.goToEntrance()
+                    while robotRunning.tracker.postercounter < 2:
+                        followWall = FollowWall()
+                    goToDest = robotRunning.tracker.position(1)
+                    if goToDest:
+                    #### Vision analysis here
+                        print('scanning image 2...')
+                running = False
+            else:
+                robotRunning.goToEntrance()
+                while robotRunning.tracker.postercounter < 2:
+                    followWall = FollowWall()
                     if robotRunning.tracker.postercounter == 1:
-                        print('before moving to position')
+                        robotRunning.stopMovement()
                         goToDest = robotRunning.tracker.position(0)
                         if goToDest:
-                            data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-                            print(data)
-                            # cluedoClassifier.main()
-                            ##### Jake ######
-                            #### check images if found
+                            print('scanning image exciting...')
+                    elif robotRunning.tracker.postercounter == 2:
+                        robotRunning.stopMovement()
+                        goToDest = robotRunning.tracker.position(1)
+                        if goToDest:
+                            print('scanning image exciting...')
                     ### run wall following alogrithms
                     ###### Emily ######
                     ##### Insert wall following here
@@ -97,7 +120,7 @@ def main():
                     #### check images if found
                     ### running = False
             # else:
-            #     ###commit suicide 
+            #     ###commit suicide
             rospy.spin()
         except KeyboardInterrupt:
             print("Shutting down")
