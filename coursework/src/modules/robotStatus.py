@@ -34,14 +34,13 @@ class RobotStatus:
             rospy.loginfo("The Robot couldn't get this this position")
             self.goToPose.shutdown()
 
-
     def goToEntrance(self):
         success = self.goToPose.goToPosition(self.entranceXcoordinate, self.entranceYcoordinate, 0.00)
         if success:
             rospy.loginfo("RobotStatus class made it to the middle")
         else:
             rospy.loginfo("The Robot couldn't get this this position")
-
+            self.goToPose.shutdown()
 
     def stopMovement(self):
         self.desired_velocity.linear.x = 0
@@ -58,7 +57,7 @@ class RobotStatus:
         while current_angle <= end_angle:
             self.movement_pub.publish(self.desired_velocity)
             t1 = rospy.Time.now().to_sec()
-            current_angle = 2*(t1-t0)
+            current_angle = 0.5*(t1-t0)
 
         self.desired_velocity.angular.z = 0
         self.movement_pub.publish(self.desired_velocity)

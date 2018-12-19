@@ -55,29 +55,17 @@ class FollowWall():
 
         self.movement()
 
+
     def movement(self):
         # PD controller
         self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
         if (self.dist_front < self.wall_dist):
-            print('dist_front < wall_dist')
             self.velocity.linear.x = 0
         elif (self.dist_front < self.wall_dist * 2):
-            print('dist_front < wall_dist * 2')
             self.velocity.linear.x = 0.5 * self.max_speed
         elif (abs(self.angle_minDist) > 1.75):
-            print('angle_minDist > 1.75')
             self.velocity.linear.x = 0.4 * self.max_speed
         else:
-            print('else')
             self.velocity.linear.x = self.max_speed
 
         self.velocityPublish.publish(self.velocity)
-
-# if __name__ == '__main__':
-#     try:
-#         rospy.init_node('wallFollower', anonymous=True)
-#         wallFollower = FollowWall()
-#         # don't exit until stopped
-#         rospy.spin()
-#     except rospy.ROSInterruptException:
-# 		pass

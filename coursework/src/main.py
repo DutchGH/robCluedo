@@ -20,7 +20,6 @@ from modules import Tracker
 from modules import CluedoClassifier
 from modules import follow_wall
 
-
 class robCluedo:
     def __init__(self, pub, rate):
         self.image_sub = rospy.Subscriber('CluARFound', Bool, self.callback)
@@ -52,21 +51,18 @@ def publisher(name, type):
 
 	return pub, rate
 
-
-
-
 def main():
     rospy.init_node('cluedo_main', anonymous=True)
     pub, rate = publisher("CluedoMain", Bool)
     cI = robCluedo(pub, rate)
     running = True
 
-    while running:
-        try:
-            robotRunning = robotStatus.RobotStatus()
-            robotRunning.goToMiddle()
-
+    try:
+        robotRunning = robotStatus.RobotStatus()
+        # robotRunning.goToMiddle()
+        while running:
             if robotRunning.tracker.postercounter == 2:
+                print(' poster counter 2. Done!')
                 for i in range(0,2):
                     gotToDest = robotRunning.tracker.position(i)
                     if goToDest:
@@ -90,40 +86,40 @@ def main():
                     # cluedoClassifier.main()
                     ##### Jake ######
                     #### check images if found
-                else:
-                    robotRunning.goToEntrance()
-                    while robotRunning.tracker.postercounter < 2:
-                        followWall = FollowWall()
+                print('go to entrance')
+                robotRunning.goToEntrance()
+                # while robotRunning.tracker.postercounter < 2:
+                #     print('poster counter < 2')
+                followWall = follow_wall.FollowWall()
+                if (robotRunning.tracker.postercounter == 2):
                     goToDest = robotRunning.tracker.position(1)
                     if goToDest:
                     #### Vision analysis here
                         print('scanning image 2...')
-                running = False
+                running = True
             else:
                 robotRunning.goToEntrance()
-                while robotRunning.tracker.postercounter < 2:
-                    followWall = FollowWall()
-                    if robotRunning.tracker.postercounter == 1:
-                        robotRunning.stopMovement()
-                        goToDest = robotRunning.tracker.position(0)
-                        if goToDest:
-                            print('scanning image exciting...')
-                    elif robotRunning.tracker.postercounter == 2:
-                        robotRunning.stopMovement()
-                        goToDest = robotRunning.tracker.position(1)
-                        if goToDest:
-                            print('scanning image exciting...')
-                    ### run wall following alogrithms
-                    ###### Emily ######
-                    ##### Insert wall following here
+                # while robotRunning.tracker.postercounter < 2:
+                #     print('poster counter < 2')
+                followWall = follow_wall.FollowWall()
+                if robotRunning.tracker.postercounter == 1:
+                    robotRunning.stopMovement()
+                    goToDest = robotRunning.tracker.position(0)
+                    if goToDest:
+                        print('scanning image exciting...')
+                elif robotRunning.tracker.postercounter == 2:
+                    print('poster counter = 2')
+                    robotRunning.stopMovement()
+                    goToDest = robotRunning.tracker.position(1)
+                    if goToDest:
+                        print('scanning image exciting...')
                     ##### Jake ######
                     #### check images if found
                     ### running = False
-            # else:
-            #     ###commit suicide
+                running = True
             rospy.spin()
-        except KeyboardInterrupt:
-            print("Shutting down")
+    except KeyboardInterrupt:
+        print("Shutting down")
 
 if __name__ == "__main__":
     main()

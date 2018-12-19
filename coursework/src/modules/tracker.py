@@ -31,8 +31,11 @@ class Tracker():
 	def findar(self,markers):
 		# while ar marker is not registered
 		while not self.arfound:
-			self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
-			(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
+			# self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
+			try :
+				(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
+			except :
+				return
 			self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
 			#check if marker already registered
 			if len(self.arlist) > 0:
@@ -81,7 +84,6 @@ class Tracker():
 		#send command to move to the poster
 		return self.navigate.goto(position,quaternion)
 
-
 	def position(self, posterId):
 		#navigate to poster
 		reachDest = self.look(posterId);
@@ -93,7 +95,6 @@ class Tracker():
 			rospy.sleep(1)
 			return True
 		return False
-
 
 	def nearequal(self,x1,x2,y1,y2,tolerance):
 		if abs(x1-x2) < tolerance and abs(y1-y2) < tolerance:
