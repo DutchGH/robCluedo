@@ -24,7 +24,7 @@ class robCluedo:
     def __init__(self, pub, rate):
         self.image_sub = rospy.Subscriber('CluARFound', Bool, self.callback)
         self.image_feed = rospy.Subscriber('/camera/rgb/image_raw/', Image, self.setRawImage)
-        self.bridge = CvBridge()
+        # self.bridge = CvBridge()
 
         self.rawImage = None
         self.murderer = None
@@ -40,7 +40,7 @@ class robCluedo:
 
     def setRawImage(self, data):
         # print("Got Image!")
-        self.rawImage = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        self.rawImage = CvBridge().imgmsg_to_cv2(data, "bgr8")
         # print(data)
 
     def getRawImage(self):
@@ -69,8 +69,10 @@ def main():
                     gotToDest = robotRunning.tracker.position(i)
                     if goToDest:
                         print('000000')
+                        #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
                         data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
                         print(data)
+                        print(data.name)
                         print('finished image analysis')
                         ########## Jake #########
                         #### infront of the poster mate insert your code here
@@ -87,6 +89,10 @@ def main():
                     print('scanning image exciting...')
                     # cluedoClassifier.main()
                     ##### Jake ######
+                     #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
+                    data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
+                    print(data)
+                    print(data.name)
                     #### check images if found
                 print('go to entrance')
                 robotRunning.goToEntrance()
@@ -118,6 +124,25 @@ def main():
                     goToDest = robotRunning.tracker.position(1)
                     if goToDest:
                         print('scanning image exciting...')
+                while robotRunning.tracker.postercounter < 2:
+                    followWall = FollowWall()
+                    if robotRunning.tracker.postercounter == 1:
+                        robotRunning.stopMovement()
+                        goToDest = robotRunning.tracker.position(0)
+                        if goToDest:
+                            #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
+                            data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
+                            print(data)
+                            print(data.name)
+                            # cluedoClassifier.main()
+                            ##### Jake ######
+                            #### check images if found
+                            print('scanning image exciting...')
+                    elif robotRunning.tracker.postercounter == 2:
+                        robotRunning.stopMovement()
+                        goToDest = robotRunning.tracker.position(1)
+                        if goToDest:
+                            print('scanning image exciting...')
                     ##### Jake ######
                     #### check images if found
                     ### running = False
