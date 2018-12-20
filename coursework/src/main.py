@@ -24,7 +24,6 @@ class robCluedo:
     def __init__(self, pub, rate):
         self.image_sub = rospy.Subscriber('CluARFound', Bool, self.callback)
         self.image_feed = rospy.Subscriber('/camera/rgb/image_raw/', Image, self.setRawImage)
-        # self.bridge = CvBridge()
 
         self.rawImage = None
         self.murderer = None
@@ -39,9 +38,7 @@ class robCluedo:
         print(data.data)
 
     def setRawImage(self, data):
-        # print("Got Image!")
         self.rawImage = CvBridge().imgmsg_to_cv2(data, "bgr8")
-        # print(data)
 
     def getRawImage(self):
         return self.rawImage
@@ -60,7 +57,7 @@ def main():
 
     try:
         robotRunning = robotStatus.RobotStatus()
-        # robotRunning.goToMiddle()
+        robotRunning.goToMiddle()
         while running:
             print('running')
             if robotRunning.tracker.postercounter == 2:
@@ -74,9 +71,6 @@ def main():
                         print(data)
                         print(data.name)
                         print('finished image analysis')
-                        ########## Jake #########
-                        #### infront of the poster mate insert your code here
-                        ########## Jake #########
                         ###write file
                         ##end program
                         running = False
@@ -84,36 +78,26 @@ def main():
                 print('before moving to position')
                 goToDest = robotRunning.tracker.position(0)
                 if goToDest:
-                    # data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-                    # print(data)
-                    print('scanning image exciting...')
-                    # cluedoClassifier.main()
-                    ##### Jake ######
                      #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
                     data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
                     print(data)
                     print(data.name)
-                    #### check images if found
-                print('go to entrance')
                 robotRunning.goToEntrance()
-                # while robotRunning.tracker.postercounter < 2:
-                #     print('poster counter < 2')
-                followWall = robotRunning.followWall.start()
-                print('exit --')
+                follow_wall.FollowWall().startCounter()
+                follow_wall.FollowWall().start()
                 if (robotRunning.tracker.postercounter == 2):
                     goToDest = robotRunning.tracker.position(1)
                     if goToDest:
-                    #### Vision analysis here
+                    # Vision analysis
                         print('scanning image 2...')
                 running = True
             else:
                 robotRunning.goToEntrance()
-                robotRunning.followWall.startCounter()
-                # while robotRunning.tracker.postercounter < 2:
-                #     print('poster counter < 2')
-                followWall = robotRunning.followWall.start()
-                print('exit')
+                # start following wall
+                follow_wall.FollowWall().startCounter()
+                follow_wall.FollowWall().start()
                 if robotRunning.tracker.postercounter == 1:
+                    print('found ar marker - count = 1')
                     robotRunning.stopMovement()
                     goToDest = robotRunning.tracker.position(0)
                     if goToDest:
@@ -125,7 +109,6 @@ def main():
                     if goToDest:
                         print('scanning image exciting...')
                 while robotRunning.tracker.postercounter < 2:
-                    followWall = FollowWall()
                     if robotRunning.tracker.postercounter == 1:
                         robotRunning.stopMovement()
                         goToDest = robotRunning.tracker.position(0)

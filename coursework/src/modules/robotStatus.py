@@ -7,7 +7,6 @@ from geometry_msgs.msg import Twist
 from math import radians
 from modules import Tracker
 from modules import CluedoClassifier
-from modules import follow_wall
 
 class RobotStatus:
 
@@ -18,7 +17,6 @@ class RobotStatus:
         self.entranceXcoordinate = 5
         self.entranceYcoordinate = -0.1
         self.goToPose = GoToPose()
-        self.followWall = follow_wall.FollowWall()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()
     	self.movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)

@@ -12,15 +12,16 @@ from std_msgs.msg import Float32
 class FollowWall():
     def __init__(self):
         # subscribe to laserscan topic
+        # rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
         self.velocityPublish = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size = 10)
 
         self.velocity = Twist()
 
         self.wall_dist = 0.13
-        self.max_speed = 0.3
+        self.max_speed = 0.2
         self.direction = 1
         self.p = 1
-        self.d = 0.5
+        self.d = 0.4
         self.angle = 1
 
         self.counter = 0
@@ -32,14 +33,17 @@ class FollowWall():
         self.diff_e = 0
 
     def start(self):
+        self.startCntr = True
         self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
 
     def stop(self):
+        self.startCntr = False
         self.laserscanSubs.unregister()
 
     def laserscan_callback(self, scan_data):
         self.counter += 1
-        # append non nan values to a new list
+        self.updateValues()
+        # # append non nan values to a new list
         laserValues = []
         for i in xrange(0, len(scan_data.ranges)):
             if not np.isnan(scan_data.ranges[i]):
@@ -63,15 +67,28 @@ class FollowWall():
 
         self.movement()
 
+    def updateValues(self):
+        self.wall_dist = 0.13
+        self.max_speed = 0.2
+        self.direction = 1
+        self.p = 1
+        self.d = 0.5
+        self.angle = 1
+        self.e = 0
+        # Angle, at which was measured the shortest distance
+        self.angle_minDist = 0
+        self.dist_front = 0
+        self.diff_e = 0
+
     def movement(self):
         if (self.startCntr == True):
-            if (self.counter == 50):
+            if (self.counter == 100):
                 print('stop')
-                self.rotate()
                 self.stop()
+                self.rotate()
                 self.counter = 0
                 # return
-                self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
+                self.start()
             else:
                 # PD controller
                 self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
@@ -87,6 +104,7 @@ class FollowWall():
                 self.velocityPublish.publish(self.velocity)
 
     def startCounter(self):
+        print('set to true')
         self.startCntr = True
 
     def rotate(self):
