@@ -53,20 +53,19 @@ def main():
     rospy.init_node('cluedo_main', anonymous=True)
     pub, rate = publisher("CluedoMain", Bool)
     cI = robCluedo(pub, rate)
-    running = True
     wallfollower = follow_wall.FollowWall()
+    running = True
 	#start
     try:
         robotRunning = robotStatus.RobotStatus()
         #got to middle of the room
         robotRunning.goToMiddle()
         while running:
-            print(running)
             # if both posters are found
             if robotRunning.tracker.postercounter == 2:
                 print(' Found both poster from the middle of the room ')
                 for i in range(0,2):
-                    scanposter(robotRunning,cI,i,True)
+                    scanposter(robotRunning,cI,i)
                 # end program
                 running = False
                 break
@@ -75,7 +74,7 @@ def main():
             if robotRunning.tracker.postercounter == 1:
                 robotRunning.stopMovement()
                 print('Scan first poster')
-                scanposter(robotRunning,cI,0,True)
+                scanposter(robotRunning,cI,0)
                 robotRunning.goToEntrance()
                 wallfollower.startCounter()
                 wallfollower.start()
@@ -85,7 +84,8 @@ def main():
                         print('found second')
                         wallfollower.stop()
                         robotRunning.stopMovement()
-                        scanposter(robotRunning,cI,1,False)
+                        scanposter(robotRunning,cI,1)
+                        running = False
                         break
 
             # No posters identified after initial spin in the middle of the room
@@ -102,7 +102,7 @@ def main():
                         print('found ar marker - count = 1')
                         wallfollower.stop()
                         robotRunning.stopMovement()
-                        scanposter(robotRunning,cI,0,True)
+                        scanposter(robotRunning,cI,0)
                         print('starting search for second poster')
                         wallfollower.startCounter()
                         wallfollower.start()
@@ -111,14 +111,15 @@ def main():
                         print('poster counter = 2')
                         wallfollower.stop()
                         robotRunning.stopMovement()
-                        scanposter(robotRunning,cI,1,False)
+                        scanposter(robotRunning,cI,1)
+                        running = False
 
 
 
     except KeyboardInterrupt:
         print("Shutting down")
 
-def scanposter(robotRunning,cI,i,keeprunning):
+def scanposter(robotRunning,cI,i):
     goToDest = robotRunning.tracker.position(i)
     if goToDest:
         print('Scanning poster')
@@ -128,7 +129,6 @@ def scanposter(robotRunning,cI,i,keeprunning):
         print(data.name)
         print('finished image analysis')
         # save image
-        running = keeprunning
 
 
 
