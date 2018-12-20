@@ -81,31 +81,22 @@ class FollowWall():
         self.diff_e = 0
 
     def movement(self):
-        if (self.startCntr == True):
-            if (self.counter == 100):
-                print('stop')
-                self.stop()
-                self.rotate()
-                self.counter = 0
-                # return
-                self.start()
-            else:
-                # PD controller
-                self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
-                if (self.dist_front < self.wall_dist):
-                    self.velocity.linear.x = 0
-                elif (self.dist_front < self.wall_dist * 2):
-                    self.velocity.linear.x = 0.5 * self.max_speed
-                elif (abs(self.angle_minDist) > 1.75):
-                    self.velocity.linear.x = 0.4 * self.max_speed
-                else:
-                    self.velocity.linear.x = self.max_speed
+        # PD controller
+        self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
+        if (self.dist_front < self.wall_dist):
+            self.velocity.linear.x = 0
+        elif (self.dist_front < self.wall_dist * 2):
+            self.velocity.linear.x = 0.5 * self.max_speed
+        elif (abs(self.angle_minDist) > 1.75):
+            self.velocity.linear.x = 0.4 * self.max_speed
+        else:
+            self.velocity.linear.x = self.max_speed
 
-                self.velocityPublish.publish(self.velocity)
+        self.velocityPublish.publish(self.velocity)
 
-    def startCounter(self):
-        print('set to true')
-        self.startCntr = True
+    # def startCounter(self):
+    #     print('set to true')
+    #     self.startCntr = True
 
     def rotate(self):
         end_angle = radians(360)

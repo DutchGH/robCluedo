@@ -12,10 +12,10 @@ class RobotStatus:
 
     def __init__(self):
         self.run = True
-        self.centreXcoordinate = -5.5
-        self.centreYcoordinate = 0
-        self.entranceXcoordinate = -7.3
-        self.entranceYcoordinate = -1
+        self.centreXcoordinate = 5.38
+        self.centreYcoordinate = -0.1
+        self.entranceXcoordinate = 5.38
+        self.entranceYcoordinate = -0.1
         self.goToPose = GoToPose()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()

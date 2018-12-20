@@ -113,8 +113,7 @@ def main():
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
                         running = False
-
-
+                        break
 
     except KeyboardInterrupt:
         print("Shutting down")
@@ -129,8 +128,6 @@ def scanposter(robotRunning,cI,i):
         print(data.name)
         print('finished image analysis')
         # save image
-
-
 
 if __name__ == "__main__":
     main()
