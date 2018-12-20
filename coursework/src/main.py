@@ -64,32 +64,18 @@ def main():
             print(running)
             # if both posters are found
             if robotRunning.tracker.postercounter == 2:
-                print(' poster counter 2. Done!')
+                print(' Found both poster from the middle of the room ')
                 for i in range(0,2):
-                    goToDest = robotRunning.tracker.position(i)
-                    if goToDest:
-                        print('Scanning poster')
-                        #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
-                        data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-                        print(data)
-                        print(data.name)
-                        print('finished image analysis')
-                        ###write file
-                        ##end program
+                    scanposter(robotRunning,cI,i,True)
+                # end program
                 running = False
                 break
 
             #only single poster was found
             if robotRunning.tracker.postercounter == 1:
-                print('before moving to position')
                 robotRunning.stopMovement()
-                goToDest = robotRunning.tracker.position(0)
-                if goToDest:
-                     #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
-                    data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-                    print(data)
-                    print(data.name)
-                    print('finished image analysis')
+                print('Scan first poster')
+                scanposter(robotRunning,cI,0,True)
                 robotRunning.goToEntrance()
                 wallfollower.startCounter()
                 wallfollower.start()
@@ -99,17 +85,7 @@ def main():
                         print('found second')
                         wallfollower.stop()
                         robotRunning.stopMovement()
-                        goToDest = robotRunning.tracker.position(1)
-                        if goToDest:
-						    # Vision analysis
-						    print('scanning poster')
-						    #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
-						    data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-						    print(data)
-						    print(data.name)
-						    print('finished image analysis')
-						    #end program
-						    running = False
+                        scanposter(robotRunning,cI,1,False)
                         break
 
             # No posters identified after initial spin in the middle of the room
@@ -118,45 +94,43 @@ def main():
                 # start following wall
                 wallfollower.startCounter()
                 wallfollower.start()
-            #temp flag!!!!!!!
+
                 doneOnce = False
-                while robotRunning.tracker.postercounter < 2:
+                while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 1 and doneOnce == False:
                         doneOnce = True
                         print('found ar marker - count = 1')
                         wallfollower.stop()
                         robotRunning.stopMovement()
-                        goToDest = robotRunning.tracker.position(0)
-                        if goToDest:
-                            #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
-                            data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-                            print(data)
-                            print(data.name)
-                            # cluedoClassifier.main()
-                            ##### Jake ######
-                            #### check images if found
-                            print('scanning image exciting...')
-                            print('starting search for second poster')
+                        scanposter(robotRunning,cI,0,True)
+                        print('starting search for second poster')
+                        wallfollower.startCounter()
+                        wallfollower.start()
+
                     elif robotRunning.tracker.postercounter == 2:
                         print('poster counter = 2')
                         wallfollower.stop()
                         robotRunning.stopMovement()
-                        goToDest = robotRunning.tracker.position(1)
-                        if goToDest:
-                            print('scanning image exciting...')
-                            #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
-                            data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-                            print(data)
-                            print(data.name)
-                            print('finished image analysis')
-                            running = False
-                    ##### Jake ######
-                    #### check images if found
-                    ### running = False
+                        scanposter(robotRunning,cI,1,False)
 
-            #rospy.spin()
+
+
     except KeyboardInterrupt:
         print("Shutting down")
+
+def scanposter(robotRunning,cI,i,keeprunning):
+    goToDest = robotRunning.tracker.position(i)
+    if goToDest:
+        print('Scanning poster')
+        #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
+        data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
+        print(data)
+        print(data.name)
+        print('finished image analysis')
+        # save image
+        running = keeprunning
+
+
 
 if __name__ == "__main__":
     main()
