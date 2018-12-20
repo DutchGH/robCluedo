@@ -38,21 +38,23 @@ class Tracker():
 				return
 			self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
 			#check if marker already registered
-			if len(self.arlist) > 0:
-				for i in self.arlist:
-					for j in i:
-						samePoster = self.nearequal(self.posterx, i[0], self.postery, i[1], 0.2)
-						if samePoster:
-							continue
-						else:
-							#new poster found
-							self.addPoster(trans, rot)
-							self.postercounter += 1
-			#if poster is in new position
-			else:
+
+			if len(self.arlist) == 0:
 				#new poster found
 				self.addPoster(trans, rot)
 				self.postercounter += 1
+				print('found a new poster')
+				print(self.arlist[0])
+			elif len(self.arlist) < 2:
+				samePoster = self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2)
+				if samePoster:
+					continue
+				else:
+					#new poster found
+					self.addPoster(trans, rot)
+					self.postercounter += 1
+					print('found a second poster')
+					print(self.arlist[1])
 			rospy.sleep(1)
 		return self.arfound
 
