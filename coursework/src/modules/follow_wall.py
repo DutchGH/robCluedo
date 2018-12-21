@@ -9,7 +9,7 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 
-class FollowWall():
+class FollowWall:
     def __init__(self):
         # subscribe to laserscan topic
         # rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)

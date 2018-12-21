@@ -18,7 +18,7 @@ from std_msgs.msg import String, Bool
 from modules import robotStatus
 from modules import Tracker
 from modules import CluedoClassifier
-from modules import follow_wall
+from modules import FollowWall
 
 class robCluedo:
     def __init__(self, pub, rate):
@@ -53,7 +53,7 @@ def main():
     rospy.init_node('cluedo_main', anonymous=True)
     pub, rate = publisher("CluedoMain", Bool)
     cI = robCluedo(pub, rate)
-    wallfollower = follow_wall.FollowWall()
+    wallfollower = FollowWall()
     running = True
 	#start
     try:
@@ -76,7 +76,7 @@ def main():
                 print('Scan first poster')
                 scanposter(robotRunning,cI,0)
                 robotRunning.goToEntrance()
-                wallfollower.startCounter()
+                # wallfollower.start()
                 wallfollower.start()
                 print('starting search for second poster')
                 while robotRunning.tracker.postercounter < 3:
@@ -92,7 +92,7 @@ def main():
             else:
                 robotRunning.goToEntrance()
                 # start following wall
-                wallfollower.startCounter()
+                # wallfollower.startCounter()
                 wallfollower.start()
 
                 doneOnce = False
@@ -104,7 +104,7 @@ def main():
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,0)
                         print('starting search for second poster')
-                        wallfollower.startCounter()
+                        # wallfollower.startCounter()
                         wallfollower.start()
 
                     elif robotRunning.tracker.postercounter == 2:

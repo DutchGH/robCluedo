@@ -8,6 +8,8 @@ import rospy
 import sys
 import tensorflow as tf
 import copy
+import uuid
+
 
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import Image
@@ -65,12 +67,14 @@ class CluedoClassifier():
             res = cv2.matchTemplate(img,template,method)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
             clu.setScore(max_val)
-            if clu.getScore() > bestCharacter.getScore() and clu.getScore() > 0.5:
+            if clu.getScore() > bestCharacter.getScore(): # and clu.getScore() > 0.5
                 bestCharacter = clu
 
+        print (bestCharacter.name, bestCharacter.getScore())
+        newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
+        cv2.imwrite(newFile, img)
         return bestCharacter
         
-        # print (bestCharacter.name, bestCharacter.getScore())
         # cv2.waitKey(3)
 
     
