@@ -32,20 +32,20 @@ class FollowWall:
         self.diff_PrevError = 0
 
     def start(self, entranceXcoord, entranceYcoord):
-        self.entranceXcoord = entranceXcoord
-        self.entranceYcoord = entranceYcoord
-        self.startCntr = True
+        # self.entranceXcoord = entranceXcoord
+        # self.entranceYcoord = entranceYcoord
+        # self.startCntr = True
         self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
 
     def stop(self):
         self.laserscanSubs.unregister()
 
-    def checkEnterance(self):
-        if self.tf.frameExists("/base_link") and self.tf.frameExists("/map"):
-            t = self.tf.getLatestCommonTime("/base_link", "/map")
-            position, quaternion = self.tf.lookupTransform("/base_link", "/map", t)
-            if abs(position.x - self.entranceXcoord) < 0.04 and abs(position.y - self.entranceYcoord)< 0.04:
-                return True
+    # def checkEnterance(self):
+    #     if self.tf.frameExists("/base_link") and self.tf.frameExists("/map"):
+    #         t = self.tf.getLatestCommonTime("/base_link", "/map")
+    #         position, quaternion = self.tf.lookupTransform("/base_link", "/map", t)
+    #         if abs(position.x - self.entranceXcoord) < 0.04 and abs(position.y - self.entranceYcoord)< 0.04:
+    #             return True
 
     def laserscan_callback(self, scan_data):
         # append non nan values to a new list
@@ -82,12 +82,12 @@ class FollowWall:
 
     def movement(self):
         # PD controller
-        lapComplete = self.checkEnterance
-        if lapComplete and self.counter > 500 and self.turnAround == False:
-            self.stop()
-            self.rotate(180)
-            self.turnAround = True
-            self.start(self.entranceXcoord, self.entranceYcoord)
+        # lapComplete = self.checkEnterance
+        # if lapComplete and self.counter > 500 and self.turnAround == False:
+        #     self.stop()
+        #     self.rotate(180)
+        #     self.turnAround = True
+        #     self.start(self.entranceXcoord, self.entranceYcoord)
        velocity = (self.error_value + self.diff_PrevError) + (self.angle_minDist - math.pi * 0.5)
         if (velocity > 1):
             velocity = 1
