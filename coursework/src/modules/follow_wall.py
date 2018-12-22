@@ -16,15 +16,18 @@ class FollowWall:
 
         self.velocity = Twist()
 
-        self.wall_dist = 0.13
+        # minimum distance from wall
+        self.minDist_wall = 0.25
+        # distance at middle of laserscan - in front of robot
+        self.distAhead = 0
         self.speed = 0.2
-        self.d = 0.4
+        self.maxAngularVeloc = 1
 
-        self.e = 0
-        # Angle, at which the shortest distance was measured
+        # angle against minimum distance point on map
         self.angle_minDist = 0
-        self.dist_front = 0
-        self.diff_e = 0
+        self.error_value = 0
+        self.d = 0.4
+        self.diff_PrevError = 0
 
     def start(self):
         self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
@@ -40,28 +43,40 @@ class FollowWall:
                 laserValues.append(scan_data.ranges[i])
 
         size = len(laserValues)
-        min_index = int(size/2)
-        max_index = size
+        print(size)
+        if (size == 0):
+            print('size = 0')
+            self.stop()
+            self.stopMovement()
+            self.reverseAndRotate()
+            self.start()
+        else :
+            minIndex = int(size/2)
+            self.distAhead = laserValues[minIndex]
 
-        # find minimum
-        for i in range(min_index, max_index):
-            if (laserValues[i] < laserValues[min_index] and laserValues[i] > 0.2):
-                min_index = i
+            # find minimum index value
+            for i in range(minIndex, size):
+                if (laserValues[i] < laserValues[minIndex] and laserValues[i] > 0.01):
+                    minIndex = i
 
-        self.angle_minDist = (min_index - (size/2)) * scan_data.angle_increment
-        dist_min = laserValues[min_index]
-        self.dist_front = laserValues[int(size/2)]
-        self.diff_e = (dist_min - self.wall_dist) - self.e
-        self.e = dist_min - self.wall_dist
+            self.angle_minDist = (minIndex - size/2) * scan_data.angle_increment
+            # scan value at minimum index
+            minIndex_value = laserValues[minIndex]
+            self.diff_PrevError = (minIndex_value - self.minDist_wall) - self.error_value
+            self.error_value = minIndex_value - self.minDist_wall
 
-        self.movement()
+            self.movement()
 
     def movement(self):
-        # PD controller
-        self.velocity.angular.z = (self.e + self.d * self.diff_e) + (self.angle_minDist - math.pi * 0.5)
-        if (self.dist_front < self.wall_dist):
+        velocity = (self.error_value + self.diff_PrevError) + (self.angle_minDist - math.pi * 0.5)
+        if (velocity > 1):
+            velocity = 1
+        self.velocity.angular.z = velocity
+        if (self.distAhead < self.minDist_wall):
+            # too close to wall ahead, stop
             self.velocity.linear.x = 0
-        elif (self.dist_front < self.wall_dist * 2):
+        elif (self.distAhead < self.minDist_wall * 2):
+            # geeting close to wall, slow down
             self.velocity.linear.x = 0.5 * self.speed
         elif (abs(self.angle_minDist) > 1.75):
             self.velocity.linear.x = 0.4 * self.speed
@@ -70,17 +85,20 @@ class FollowWall:
 
         self.velocityPublish.publish(self.velocity)
 
-    def rotate(self):
-        end_angle = radians(360)
+    def stopMovement(self):
         self.velocity.linear.x = 0
-        self.velocity.angular.z = 0.3
-        t0 = rospy.Time.now().to_sec()
-        current_angle = 0
-
-        while current_angle <= end_angle:
-            self.velocityPublish.publish(self.velocity)
-            t1 = rospy.Time.now().to_sec()
-            current_angle = 0.5*(t1-t0)
-
         self.velocity.angular.z = 0
+        self.velocityPublish.publish(self.velocity)
+
+    def reverseAndRotate(self):
+        self.velocity.linear.x = -0.2
+        self.velocityPublish.publish(self.velocity)
+        rospy.sleep(0.5)
+        self.stopMovement()
+        self.rotate()
+        rospy.sleep(1)
+
+    def rotate(self):
+        self.velocity.linear.x = 0
+        self.velocity.angular.z = -radians(140)
         self.velocityPublish.publish(self.velocity)
