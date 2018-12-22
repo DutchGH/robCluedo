@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import rospy
 import sys
 import cv2
@@ -76,42 +75,45 @@ def main():
                 print('Scan first poster')
                 scanposter(robotRunning,cI,0)
                 robotRunning.goToEntrance()
-                wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
+                wallfollower.start()
                 print('starting search for second poster')
                 while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 2:
+                        # stop wall following and scan poster
                         print('found second')
                         wallfollower.stop()
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
+                        # both posters scanned, end program
                         running = False
                         break
 
             # No posters identified after initial spin in the middle of the room
             else:
-                print('going to the middle')
                 robotRunning.goToEntrance()
                 # start following wall
-                # wallfollower.startCounter()
-                wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
+                wallfollower.start()
 
                 doneOnce = False
                 while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 1 and doneOnce == False:
                         doneOnce = True
                         print('found ar marker - count = 1')
+                        # stop wall following and scan poster
                         wallfollower.stop()
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,0)
                         print('starting search for second poster')
-                        # wallfollower.startCounter()
-                        wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
+                        # resume wall following
+                        wallfollower.start()
 
                     elif robotRunning.tracker.postercounter == 2:
                         print('poster counter = 2')
+                        # stop wall following and scan poster
                         wallfollower.stop()
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
+                        # both posters scanned, end program
                         running = False
                         break
 

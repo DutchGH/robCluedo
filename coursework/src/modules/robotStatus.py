@@ -13,10 +13,23 @@ class RobotStatus:
 
     def __init__(self):
         self.run = True
+<<<<<<< HEAD
         self.centreXcoordinate = 5.18
         self.centreYcoordinate = -0.1
         self.entranceXcoordinate = 5.18
         self.entranceYcoordinate = -0.1
+=======
+        # lab5 world
+        self.centreXcoordinate = -2.15
+        self.centreYcoordinate = 2.27
+        self.entranceXcoordinate = -3.7
+        self.entranceYcoordinate = 1.97
+        # demo world
+        # self.centreXcoordinate = 5.38
+        # self.centreYcoordinate = -0.1
+        # self.entranceXcoordinate = 5.38
+        # self.entranceYcoordinate = -0.1
+>>>>>>> 5019720a4a7d0ca41593cbddc626fb2cd5accee2
         self.goToPose = GoToPose()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()
@@ -51,7 +64,7 @@ class RobotStatus:
     def rotate(self, angleValue):
         end_angle = radians(angleValue)
         self.desired_velocity.linear.x = 0
-        self.desired_velocity.angular.z = 0.5
+        self.desired_velocity.angular.z = 0.3
         t0 = rospy.Time.now().to_sec()
         current_angle = 0
 

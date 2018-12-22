@@ -13,25 +13,23 @@ from kobuki_msgs.msg import BumperEvent
 class FollowWall:
     def __init__(self):
         # subscribe to laserscan topic
-        # rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
         self.velocityPublish = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size = 10)
         # rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
         self.velocity = Twist()
 
-        self.wall_dist = 0.13
-        self.max_speed = 0.2
-        self.direction = 1
-        self.p = 1
-        self.d = 0.4
-        self.angle = 1
-        self.turnAround = False
-        self.counter = 0
+        # minimum distance from wall
+        self.minDist_wall = 0.25
+        # distance at middle of laserscan - in front of robot
+        self.distAhead = 0
+        self.speed = 0.2
+        self.maxAngularVeloc = 1
 
-        self.e = 0
-        # Angle, at which was measured the shortest distance
+        # angle against minimum distance point on map
         self.angle_minDist = 0
-        self.dist_front = 0
-        self.diff_e = 0
+        # error of distance to closest object - distance from wall
+        self.error_value = 0
+        self.d = 0.4
+        self.diff_PrevError = 0
 
     def start(self, entranceXcoord, entranceYcoord):
         self.entranceXcoord = entranceXcoord
@@ -40,7 +38,6 @@ class FollowWall:
         self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
 
     def stop(self):
-        self.startCntr = False
         self.laserscanSubs.unregister()
 
     def checkEnterance(self):
@@ -51,44 +48,37 @@ class FollowWall:
                 return True
 
     def laserscan_callback(self, scan_data):
-        self.counter += 1
-        self.updateValues()
-        # # append non nan values to a new list
+        # append non nan values to a new list
         laserValues = []
         for i in xrange(0, len(scan_data.ranges)):
             if not np.isnan(scan_data.ranges[i]):
                 laserValues.append(scan_data.ranges[i])
 
         size = len(laserValues)
-        min_index = size * (self.direction + 1)/4
-        max_index = size * (self.direction + 3)/4
+        if (size == 0):
+            # laser scan not picking up anything, too close to object
+            # stop scanning, reverse and rotate
+            self.stop()
+            self.stopMovement()
+            self.reverseAndRotate()
+            # start scanning again
+            self.start()
+        else :
+            minIndex = int(size/2)
+            self.distAhead = laserValues[minIndex]
 
-        # find minimum
-        for i in range(min_index, max_index):
-            if (laserValues[i] < laserValues[min_index] and laserValues[i] > 0.01):
-                min_index = i
+            # find minimum index value
+            for i in range(minIndex, size):
+                if (laserValues[i] < laserValues[minIndex] and laserValues[i] > 0.01):
+                    minIndex = i
 
-        # Calculation of angles from indexes and storing data to class variables
-        self.angle_minDist = (min_index - size/2) * scan_data.angle_increment
-        dist_min = laserValues[min_index]
-        self.dist_front = laserValues[size/2]
-        self.diff_e = (dist_min - self.wall_dist) - self.e
-        self.e = dist_min - self.wall_dist
+            self.angle_minDist = (minIndex - size/2) * scan_data.angle_increment
+            # laser scan value at minimum index
+            minIndex_value = laserValues[minIndex]
+            self.diff_PrevError = (minIndex_value - self.minDist_wall) - self.error_value
+            self.error_value = minIndex_value - self.minDist_wall
 
-        self.movement()
-
-    def updateValues(self):
-        self.wall_dist = 0.13
-        self.max_speed = 0.2
-        self.direction = 1
-        self.p = 1
-        self.d = 0.5
-        self.angle = 1
-        self.e = 0
-        # Angle, at which was measured the shortest distance
-        self.angle_minDist = 0
-        self.dist_front = 0
-        self.diff_e = 0
+            self.movement()
 
     def movement(self):
         # PD controller
@@ -98,16 +88,23 @@ class FollowWall:
             self.rotate(180)
             self.turnAround = True
             self.start(self.entranceXcoord, self.entranceYcoord)
-        self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
-        if (self.dist_front < self.wall_dist):
+       velocity = (self.error_value + self.diff_PrevError) + (self.angle_minDist - math.pi * 0.5)
+        if (velocity > 1):
+            velocity = 1
+        self.velocity.angular.z = velocity
+        if (self.distAhead < self.minDist_wall):
+            # too close to wall ahead, stop
             self.velocity.linear.x = 0
-        elif (self.dist_front < self.wall_dist * 2):
-            self.velocity.linear.x = 0.5 * self.max_speed
+        elif (self.distAhead < self.minDist_wall * 2):
+            # geeting close to wall, slow down
+            self.velocity.linear.x = 0.5 * self.speed
         elif (abs(self.angle_minDist) > 1.75):
-            self.velocity.linear.x = 0.4 * self.max_speed
+            self.velocity.linear.x = 0.4 * self.speed
         else:
-            self.velocity.linear.x = self.max_speed
+            self.velocity.linear.x = self.speed
+
         self.velocityPublish.publish(self.velocity)
+
 
     # def processBump(self, data):
     # 	if (data.state == BumperEvent.PRESSED):
@@ -124,15 +121,24 @@ class FollowWall:
 
     def rotate(self, angleValue):
         end_angle = radians(angleValue)
+        self.velocity.linear.x = self.speed
+        self.velocityPublish.publish(self.velocity)
+
+    def stopMovement(self):
         self.velocity.linear.x = 0
-        self.velocity.angular.z = 0.5
-        t0 = rospy.Time.now().to_sec()
-        current_angle = 0
-
-        while current_angle <= end_angle:
-            self.velocityPublish.publish(self.velocity)
-            t1 = rospy.Time.now().to_sec()
-            current_angle = 0.5*(t1-t0)
-
         self.velocity.angular.z = 0
+        self.velocityPublish.publish(self.velocity)
+
+    def reverseAndRotate(self):
+        # too close to object, reverse and rotate
+        self.velocity.linear.x = -0.2
+        self.velocityPublish.publish(self.velocity)
+        rospy.sleep(0.5)
+        self.stopMovement()
+        self.rotate()
+        rospy.sleep(1)
+
+    def rotate(self):
+        self.velocity.linear.x = 0
+        self.velocity.angular.z = -radians(140)
         self.velocityPublish.publish(self.velocity)
