@@ -25,6 +25,7 @@ class FollowWall:
 
         # angle against minimum distance point on map
         self.angle_minDist = 0
+        # error of distance to closest object - distance from wall
         self.error_value = 0
         self.d = 0.4
         self.diff_PrevError = 0
@@ -43,12 +44,13 @@ class FollowWall:
                 laserValues.append(scan_data.ranges[i])
 
         size = len(laserValues)
-        print(size)
         if (size == 0):
-            print('size = 0')
+            # laser scan not picking up anything, too close to object
+            # stop scanning, reverse and rotate
             self.stop()
             self.stopMovement()
             self.reverseAndRotate()
+            # start scanning again
             self.start()
         else :
             minIndex = int(size/2)
@@ -60,7 +62,7 @@ class FollowWall:
                     minIndex = i
 
             self.angle_minDist = (minIndex - size/2) * scan_data.angle_increment
-            # scan value at minimum index
+            # laser scan value at minimum index
             minIndex_value = laserValues[minIndex]
             self.diff_PrevError = (minIndex_value - self.minDist_wall) - self.error_value
             self.error_value = minIndex_value - self.minDist_wall
@@ -91,6 +93,7 @@ class FollowWall:
         self.velocityPublish.publish(self.velocity)
 
     def reverseAndRotate(self):
+        # too close to object, reverse and rotate
         self.velocity.linear.x = -0.2
         self.velocityPublish.publish(self.velocity)
         rospy.sleep(0.5)
