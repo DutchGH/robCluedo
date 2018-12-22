@@ -8,13 +8,14 @@ from math import radians
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
+from kobuki_msgs.msg import BumperEvent
 
 class FollowWall:
     def __init__(self):
         # subscribe to laserscan topic
         # rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
         self.velocityPublish = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size = 10)
-
+        # rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
         self.velocity = Twist()
 
         self.wall_dist = 0.13
@@ -23,7 +24,7 @@ class FollowWall:
         self.p = 1
         self.d = 0.4
         self.angle = 1
-
+        self.turnAround = False
         self.counter = 0
 
         self.e = 0
@@ -32,13 +33,22 @@ class FollowWall:
         self.dist_front = 0
         self.diff_e = 0
 
-    def start(self):
+    def start(self, entranceXcoord, entranceYcoord):
+        self.entranceXcoord = entranceXcoord
+        self.entranceYcoord = entranceYcoord
         self.startCntr = True
         self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
 
     def stop(self):
         self.startCntr = False
         self.laserscanSubs.unregister()
+
+    def checkEnterance(self):
+        if self.tf.frameExists("/base_link") and self.tf.frameExists("/map"):
+            t = self.tf.getLatestCommonTime("/base_link", "/map")
+            position, quaternion = self.tf.lookupTransform("/base_link", "/map", t)
+            if abs(position.x - self.entranceXcoord) < 0.04 and abs(position.y - self.entranceYcoord)< 0.04:
+                return True
 
     def laserscan_callback(self, scan_data):
         self.counter += 1
@@ -82,6 +92,12 @@ class FollowWall:
 
     def movement(self):
         # PD controller
+        lapComplete = self.checkEnterance
+        if lapComplete and self.counter > 500 and self.turnAround == False:
+            self.stop()
+            self.rotate(180)
+            self.turnAround = True
+            self.start(self.entranceXcoord, self.entranceYcoord)
         self.velocity.angular.z = self.direction*(self.p*self.e+self.d*self.diff_e) + self.angle*(self.angle_minDist-math.pi*self.direction/2)
         if (self.dist_front < self.wall_dist):
             self.velocity.linear.x = 0
@@ -91,15 +107,23 @@ class FollowWall:
             self.velocity.linear.x = 0.4 * self.max_speed
         else:
             self.velocity.linear.x = self.max_speed
-
         self.velocityPublish.publish(self.velocity)
 
-    # def startCounter(self):
-    #     print('set to true')
-    #     self.startCntr = True
+    # def processBump(self, data):
+    # 	if (data.state == BumperEvent.PRESSED):
+    #         rospy.loginfo('hit something... correcting')
+    #         self.velocity.linear.x = 0
+    #         self.velocity.angular.z = 0
+    #         self.velocityPublish.publish(self.velocity)
+    #         rospy.sleep(1)
+    #         rospy.loginfo('reversing...')
+    #         for i in range(0,30):
+    #             self.velocity.linear.x = -0.2
+    #             self.velocityPublish.publish(self.velocity)
+    #         rospy.loginfo('recovered moving on')
 
-    def rotate(self):
-        end_angle = radians(360)
+    def rotate(self, angleValue):
+        end_angle = radians(angleValue)
         self.velocity.linear.x = 0
         self.velocity.angular.z = 0.5
         t0 = rospy.Time.now().to_sec()
