@@ -1,11 +1,14 @@
 Robotic Cluedo
 ================
+Robot enters a simulated environment and searches for, and identifies,
+a character and a weapon in the room.
 
 Team Members:
-1. Aimilia Ntokou
-2. Jacob Bickerstaff
-3. Jacob Holland
-4. Mantas Kliopkinas
+* Aimilia Ntokou
+* Jacob Bickerstaff
+* Jacob Holland
+* Mantas Kliopkinas
 
 How To Run:
 ----------
+Instructions
