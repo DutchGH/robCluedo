@@ -21,13 +21,13 @@ class FollowWall:
         # distance at middle of laserscan - in front of robot
         self.distAhead = 0
         self.speed = 0.2
-        self.maxAngularVeloc = 1
+        self.maxAngularVel = 1
 
         # angle against minimum distance point on map
         self.angle_minDist = 0
         # error of distance to closest object - distance from wall
         self.error_value = 0
-        self.d = 0.4
+        # difference from previous error
         self.diff_PrevError = 0
 
     def start(self):
@@ -70,9 +70,9 @@ class FollowWall:
             self.movement()
 
     def movement(self):
-        velocity = (self.error_value + self.diff_PrevError) + (self.angle_minDist - math.pi * 0.5)
+        velocity = self.error_value + self.diff_PrevError + self.angle_minDist - math.pi * 0.5
         if (velocity > 1):
-            velocity = 1
+            velocity = self.maxAngularVel
         self.velocity.angular.z = velocity
         if (self.distAhead < self.minDist_wall):
             # too close to wall ahead, stop
@@ -80,8 +80,6 @@ class FollowWall:
         elif (self.distAhead < self.minDist_wall * 2):
             # geeting close to wall, slow down
             self.velocity.linear.x = 0.5 * self.speed
-        elif (abs(self.angle_minDist) > 1.75):
-            self.velocity.linear.x = 0.4 * self.speed
         else:
             self.velocity.linear.x = self.speed
 
