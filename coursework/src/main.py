@@ -66,6 +66,7 @@ def main():
                 for i in range(0,2):
                     scanposter(robotRunning,cI,i)
                 # end program
+                robotRunning.produceTxtFile()
                 running = False
                 break
 
@@ -85,9 +86,9 @@ def main():
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
                         # both posters scanned, end program
+                        robotRunning.produceTxtFile()
                         running = False
                         break
-
             # No posters identified after initial spin in the middle of the room
             else:
                 robotRunning.goToEntrance()
@@ -114,10 +115,11 @@ def main():
                         wallfollower.stop()
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
-                        # both posters scanned, end program
+                        # both posters scanned, end program, write the text file
+                        robotRunning.produceTxtFile()
                         running = False
                         break
-
+        
     except KeyboardInterrupt:
         print("Shutting down")
 

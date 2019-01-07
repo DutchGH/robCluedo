@@ -85,12 +85,15 @@ class RobotStatus:
 
 
     def produceTxtFile(self):
-        file = open('ImageInformation.txt', 'w')
+        postInformationFile = open('ImageInformation.txt', 'w')
         for i in range(1,3):
-            file.write('Image %s information', i)
-            file.write('image name:')
-            # name of image here Jake
-            file.write('image location:')
-            file.write(self.tracker.arlist[i])
-            file.write(self.tracker.quatList[i])
-            file.close()
+            information = 'image number ' + str(i)
+            postInformationFile.write(information)
+            postInformationFile.write('\n')
+            postInformationFile.write('image location:')
+            information2 = str(self.tracker.arlist[i-1])
+            postInformationFile.write('\n')
+            postInformationFile.write(information2)
+            postInformationFile.write('\n')
+
+        postInformationFile.close()
