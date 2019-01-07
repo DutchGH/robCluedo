@@ -22,6 +22,8 @@ class CleudoCharacter:
         self.fn = fn
         self.category = cat
         self.templateScore = 0
+        self.location = None
+        self.imageLocation = None
 
     def getScore(self):
         return self.templateScore
@@ -31,6 +33,18 @@ class CleudoCharacter:
 
     def getCategory(self):
         return self.category
+    
+    def setLocation(self, loc):
+        self.location = loc
+
+    def setImageLocation(self, loc):
+        self.imageLocation = loc
+    
+    def getImageLocation(self):
+        return self.imageLocation
+    
+    def getLocation(self):
+        return self.location
 
 class CluedoClassifier():
 
@@ -84,11 +98,12 @@ class CluedoClassifier():
         bottom_right = (top_left[0] + w, top_left[1] + h)
         cv2.rectangle(img, top_left, bottom_right, 255,0,0,0)
         # newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
-        imageDir = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/"
+        imageDir = os.path.dirname(os.path.abspath(__file__)) + "/../" "savedimg/"
         newFile = imageDir + str(uuid.uuid4()) + ".jpg"
         if not os.path.exists(imageDir):
             os.makedirs(imageDir)
         cv2.imwrite(newFile, img)
+        bestCharacter.setImageLocation(newFile)
         return bestCharacter
 
         # cv2.waitKey(3)

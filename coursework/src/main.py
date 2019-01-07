@@ -41,6 +41,42 @@ class robCluedo:
 
     def getRawImage(self):
         return self.rawImage
+    
+    def assignScannedImage(self, clu):
+        if clu.category == "PERSON":
+            if self.murderer is None:
+                self.murderer = clu
+            else:
+                if self.murderer.getScore() < clu.getScore():
+                    self.murderer = clu
+                else:
+                    print("We already have a murderer assigned.")
+        elif clu.category == "WEAPON":
+            if self.murderWeapon is None:
+                self.murderWeapon = clu
+            else:
+                if self.murderWeapon.getScore() < clu.getScore():
+                    self.murderWeapon = clu
+                else:
+                    print("We already have a murder weapon assigned.")
+        else:
+            print("This character does not have a type, we won't assign it")
+
+    def writeResultsFile(self):
+        resFile = os.path.dirname(os.path.abspath(__file__)) + "/CluedoResults.txt"
+        with open(resFile, 'w') as fp:
+            fp.write("RESULTS\n")
+            fp.write("Murderer:")
+            fp.write("Name: " + self.murderer.name + "\n")
+            fp.write("Location: " + self.murderer.getLocation() + "\n")
+            fp.write("Image Location: " + self.murderer.getImageLocation() + "\n")
+            fp.write("\n")
+            fp.write("Murder Weapon:\n")
+            fp.write("Type: " + self.murderWeapon.name + "\n")
+            fp.write("Location: " + self.murderWeapon.getLocation() + "\n")
+            fp.write("Image Location: " + self.murderWeapon.getImageLocation() + "\n")
+            fp.close()
+
 
 def publisher(name, type):
 	pub = rospy.Publisher(name, type, queue_size=10)
@@ -67,6 +103,9 @@ def main():
                     scanposter(robotRunning,cI,i)
                 # end program
                 robotRunning.produceTxtFile()
+                cI.writeResultsFile()
+                # print(cI.murderWeapon.name)
+                # print(cI.murderer.name)
                 running = False
                 break
 
@@ -87,6 +126,9 @@ def main():
                         scanposter(robotRunning,cI,1)
                         # both posters scanned, end program
                         robotRunning.produceTxtFile()
+                        cI.writeResultsFile()
+                        # print(cI.murderWeapon.name)
+                        # print(cI.murderer.name)
                         running = False
                         break
             # No posters identified after initial spin in the middle of the room
@@ -117,6 +159,9 @@ def main():
                         scanposter(robotRunning,cI,1)
                         # both posters scanned, end program, write the text file
                         robotRunning.produceTxtFile()
+                        cI.writeResultsFile()
+                        # print(cI.murderWeapon.name)
+                        # print(cI.murderer.name)
                         running = False
                         break
         
@@ -129,10 +174,14 @@ def scanposter(robotRunning,cI,i):
         print('Scanning poster')
         #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
         data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
-        print(data)
-        print(data.name)
+        data.setLocation(str(robotRunning.tracker.arlist[i]))
+        cI.assignScannedImage(data)
+        # print(data.name)
         print('finished image analysis')
         # save image
+
+
+
 
 if __name__ == "__main__":
     main()
