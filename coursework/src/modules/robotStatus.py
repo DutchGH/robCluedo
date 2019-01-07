@@ -14,15 +14,15 @@ class RobotStatus:
     def __init__(self):
         self.run = True
         # lab5 world
-        self.centreXcoordinate = 0.04
-        self.centreYcoordinate = 3
-        self.entranceXcoordinate = 0.04
-        self.entranceYcoordinate = 1
+        # self.centreXcoordinate = 0.04
+        # self.centreYcoordinate = 3
+        # self.entranceXcoordinate = 0.04
+        # self.entranceYcoordinate = 1
         # demo world
-        # self.centreXcoordinate = 5.38
-        # self.centreYcoordinate = -0.1
-        # self.entranceXcoordinate = 5.38
-        # self.entranceYcoordinate = -0.1
+        self.centreXcoordinate = 5.38
+        self.centreYcoordinate = -0.1
+        self.entranceXcoordinate = 5.38
+        self.entranceYcoordinate = -0.1
         self.goToPose = GoToPose()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()

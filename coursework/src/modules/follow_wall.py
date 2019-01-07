@@ -18,6 +18,7 @@ class FollowWall:
         self.velocity = Twist()
 
         self.counter = 0
+        self.turnAround = False
         # minimum distance from wall
         self.minDist_wall = 0.25
         # distance at middle of laserscan - in front of robot
