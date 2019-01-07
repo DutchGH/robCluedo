@@ -50,8 +50,8 @@ class CluedoClassifier():
     def analyseImg(self, img):
         cv_image = img
         clu_list = self.clu_list
-        bestCharacter = CleudoCharacter(None, None)
-        
+        bestCharacter = CleudoCharacter(None, None, None)
+
         conv = np.float32(cv_image)
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         img2 = img.copy()
@@ -74,7 +74,7 @@ class CluedoClassifier():
             if clu.getScore() > bestCharacter.getScore(): # and clu.getScore() > 0.5
                 bestCharacter = clu
                 top_left = max_loc
-            
+
 
         print (bestCharacter.name, bestCharacter.getScore())
         bottom_right = (top_left[0] + w, top_left[1] + h)
@@ -82,10 +82,10 @@ class CluedoClassifier():
         newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
         cv2.imwrite(newFile, img)
         return bestCharacter
-        
+
         # cv2.waitKey(3)
 
-    
+
 def createCharacterList():
     clu_list = []
     clu_list.append(CleudoCharacter("Mustard", os.path.dirname(os.path.abspath(__file__)) + '/templates/mustard.png', "PERSON"))
@@ -97,8 +97,3 @@ def createCharacterList():
     clu_list.append(CleudoCharacter("Revolver", os.path.dirname(os.path.abspath(__file__)) +'/templates/revolver.png',"WEAPON"))
 
     return clu_list
-
-
-
-
-
