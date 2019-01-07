@@ -56,6 +56,8 @@ class CluedoClassifier():
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         img2 = img.copy()
         top_left = None
+        best_w = 0
+        best_h = 0
         for clu in clu_list:
             template = cv2.imread(str(clu.fn),0)
             print(str(clu.fn))
@@ -74,12 +76,18 @@ class CluedoClassifier():
             if clu.getScore() > bestCharacter.getScore(): # and clu.getScore() > 0.5
                 bestCharacter = clu
                 top_left = max_loc
+                best_w = w
+                best_h = h
 
 
         print (bestCharacter.name, bestCharacter.getScore())
         bottom_right = (top_left[0] + w, top_left[1] + h)
-        cv2.rectangle(img, top_left, bottom_right, 255,0,255)
-        newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
+        cv2.rectangle(img, top_left, bottom_right, 255,0,0,0)
+        # newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
+        imageDir = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/"
+        newFile = imageDir + str(uuid.uuid4()) + ".jpg"
+        if not os.path.exists(imageDir):
+            os.makedirs(imageDir)
         cv2.imwrite(newFile, img)
         return bestCharacter
 
