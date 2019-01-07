@@ -75,7 +75,7 @@ def main():
                 print('Scan first poster')
                 scanposter(robotRunning,cI,0)
                 robotRunning.goToEntrance()
-                wallfollower.start()
+                wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
                 print('starting search for second poster')
                 while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 2:
@@ -92,7 +92,7 @@ def main():
             else:
                 robotRunning.goToEntrance()
                 # start following wall
-                wallfollower.start()
+                wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
 
                 doneOnce = False
                 while robotRunning.tracker.postercounter < 3:
@@ -105,7 +105,8 @@ def main():
                         scanposter(robotRunning,cI,0)
                         print('starting search for second poster')
                         # resume wall following
-                        wallfollower.start()
+                        wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
+
 
                     elif robotRunning.tracker.postercounter == 2:
                         print('poster counter = 2')

@@ -17,10 +17,10 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
 class CleudoCharacter:
-    def __init__(self, name, fn):
+    def __init__(self, name, fn, cat):
         self.name = name
         self.fn = fn
-        self.convScore = 0
+        self.category = cat
         self.templateScore = 0
 
     def getScore(self):
@@ -28,6 +28,9 @@ class CleudoCharacter:
 
     def setScore(self, score):
         self.templateScore = score
+
+    def getCategory(self):
+        return self.category
 
 class CluedoClassifier():
 
@@ -52,6 +55,7 @@ class CluedoClassifier():
         conv = np.float32(cv_image)
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
         img2 = img.copy()
+        top_left = None
         for clu in clu_list:
             template = cv2.imread(str(clu.fn),0)
             print(str(clu.fn))
@@ -69,8 +73,12 @@ class CluedoClassifier():
             clu.setScore(max_val)
             if clu.getScore() > bestCharacter.getScore(): # and clu.getScore() > 0.5
                 bestCharacter = clu
+                top_left = max_loc
+            
 
         print (bestCharacter.name, bestCharacter.getScore())
+        bottom_right = (top_left[0] + w, top_left[1] + h)
+        cv2.rectangle(img, top_left, bottom_right, 255,0,255)
         newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
         cv2.imwrite(newFile, img)
         return bestCharacter
@@ -80,13 +88,13 @@ class CluedoClassifier():
     
 def createCharacterList():
     clu_list = []
-    clu_list.append(CleudoCharacter("Mustard", os.path.dirname(os.path.abspath(__file__)) + '/templates/mustard.png'))
-    clu_list.append(CleudoCharacter("Peacock", os.path.dirname(os.path.abspath(__file__)) +'/templates/peacock.png'))
-    clu_list.append(CleudoCharacter("Scarlet", os.path.dirname(os.path.abspath(__file__)) +'/templates/scarlet.png'))
-    clu_list.append(CleudoCharacter("Plum", os.path.dirname(os.path.abspath(__file__)) +'/templates/plum.png'))
-    clu_list.append(CleudoCharacter("Wrench", os.path.dirname(os.path.abspath(__file__)) +'/templates/wrench.png'))
-    clu_list.append(CleudoCharacter("Rope", os.path.dirname(os.path.abspath(__file__)) +'/templates/rope.png'))
-    clu_list.append(CleudoCharacter("Revolver", os.path.dirname(os.path.abspath(__file__)) +'/templates/scarlet.png'))
+    clu_list.append(CleudoCharacter("Mustard", os.path.dirname(os.path.abspath(__file__)) + '/templates/mustard.png', "PERSON"))
+    clu_list.append(CleudoCharacter("Peacock", os.path.dirname(os.path.abspath(__file__)) +'/templates/peacock.png',"PERSON"))
+    clu_list.append(CleudoCharacter("Scarlet", os.path.dirname(os.path.abspath(__file__)) +'/templates/scarlet.png',"PERSON"))
+    clu_list.append(CleudoCharacter("Plum", os.path.dirname(os.path.abspath(__file__)) +'/templates/plum.png',"PERSON"))
+    clu_list.append(CleudoCharacter("Wrench", os.path.dirname(os.path.abspath(__file__)) +'/templates/wrench.png',"WEAPON"))
+    clu_list.append(CleudoCharacter("Rope", os.path.dirname(os.path.abspath(__file__)) +'/templates/rope.png',"WEAPON"))
+    clu_list.append(CleudoCharacter("Revolver", os.path.dirname(os.path.abspath(__file__)) +'/templates/revolver.png',"WEAPON"))
 
     return clu_list
 

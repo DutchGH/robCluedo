@@ -5,6 +5,7 @@ import numpy as np
 from goToPoint import GoToPose
 from geometry_msgs.msg import Twist
 from math import radians
+from kobuki_msgs.msg import BumperEvent
 from modules import Tracker
 from modules import CluedoClassifier
 
@@ -28,6 +29,7 @@ class RobotStatus:
     	self.movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
     	self.rate = rospy.Rate(10) #10hz
         self.desired_velocity = Twist()
+        # rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
 
     def goToMiddle(self):
         rospy.loginfo("start of go to middle function")
@@ -42,7 +44,7 @@ class RobotStatus:
     def goToEntrance(self):
         success = self.goToPose.goToPosition(self.entranceXcoordinate, self.entranceYcoordinate, 0.00)
         if success:
-            rospy.loginfo("RobotStatus class made it to the middle")
+            rospy.loginfo("RobotStatus class made it to the enterance")
         else:
             rospy.loginfo("The Robot couldn't get this this position")
             self.goToPose.shutdown()
@@ -66,6 +68,21 @@ class RobotStatus:
 
         self.desired_velocity.angular.z = 0
         self.movement_pub.publish(self.desired_velocity)
+
+
+    def processBump(self, data):
+    	if (self.data.state == BumperEvent.PRESSED):
+            rospy.loginfo('hit something... correcting')
+            self.desired_velocity.linear.x = 0
+            self.desired_velocity.angular.z = 0
+            self.movement_pub.publish(self.desired_velocity)
+            rospy.sleep(1)
+            rospy.loginfo('reversing...')
+            for i in range(0,30):
+                self.desired_velocity.linear.x = 0.2
+                self.movement_pub.publish(self.desired_velocity)
+            rosp.loginfo('recovered moving on')
+
 
     def produceTxtFile(self):
         file = open('ImageInformation.txt', 'w')
