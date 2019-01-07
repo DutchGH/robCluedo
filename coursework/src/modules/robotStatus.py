@@ -14,15 +14,15 @@ class RobotStatus:
     def __init__(self):
         self.run = True
         # lab5 world
-        self.centreXcoordinate = 0.04
-        self.centreYcoordinate = 3
-        self.entranceXcoordinate = 0.04
-        self.entranceYcoordinate = 1
+        # self.centreXcoordinate = 0.04
+        # self.centreYcoordinate = 3
+        # self.entranceXcoordinate = 0.04
+        # self.entranceYcoordinate = 1
         # demo world
-        # self.centreXcoordinate = 5.38
-        # self.centreYcoordinate = -0.1
-        # self.entranceXcoordinate = 5.38
-        # self.entranceYcoordinate = -0.1
+        self.centreXcoordinate = 5.38
+        self.centreYcoordinate = -0.1
+        self.entranceXcoordinate = 5.38
+        self.entranceYcoordinate = -0.1
         self.goToPose = GoToPose()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()
@@ -85,12 +85,15 @@ class RobotStatus:
 
 
     def produceTxtFile(self):
-        file = open('ImageInformation.txt', 'w')
+        postInformationFile = open('ImageInformation.txt', 'w')
         for i in range(1,3):
-            file.write('Image %s information', i)
-            file.write('image name:')
-            # name of image here Jake
-            file.write('image location:')
-            file.write(self.tracker.arlist[i])
-            file.write(self.tracker.quatList[i])
-            file.close()
+            information = 'image number ' + str(i)
+            postInformationFile.write(information)
+            postInformationFile.write('\n')
+            postInformationFile.write('image location:')
+            information2 = str(self.tracker.arlist[i-1])
+            postInformationFile.write('\n')
+            postInformationFile.write(information2)
+            postInformationFile.write('\n')
+
+        postInformationFile.close()
