@@ -68,6 +68,7 @@ class CluedoClassifier():
 
         conv = np.float32(cv_image)
         img = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
         img2 = img.copy()
         top_left = None
         best_w = 0
@@ -76,11 +77,16 @@ class CluedoClassifier():
             template = cv2.imread(str(clu.fn),0)
             print(str(clu.fn))
             template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
+            cv2.normalize(template, template, 0, 255, cv2.NORM_MINMAX)
+            # template = cv2.Canny(template, 50,200)
             w, h = template.shape[::-1]
 
             meth = 'cv2.TM_CCOEFF_NORMED'
+            # meth = 'cv2.TM_CCOEFF'
+
 
             img = img2.copy()
+            # img = cv2.Canny(img, 100,200)
             method = eval(meth)
 
             # Apply template Matching
