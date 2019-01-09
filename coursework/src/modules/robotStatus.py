@@ -16,7 +16,7 @@ class RobotStatus:
     ## configurations for the robot
     ####
     def __init__(self):
-        self.centreXcoordinate = 5.38
+        self.centreXcoordinate = 6.38
         self.centreYcoordinate = -0.1
         self.entranceXcoordinate = 5.38
         self.entranceYcoordinate = -0.1

@@ -4,16 +4,19 @@ import rospy
 import numpy as np
 import math
 import time
+import tf
 from math import radians
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 from kobuki_msgs.msg import BumperEvent
 
+
 class FollowWall:
     def __init__(self):
         # subscribe to laserscan topic
         self.velocityPublish = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size = 10)
+        self.tf_listener = tf.TransformListener()
         rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
         self.velocity = Twist()
 
@@ -41,12 +44,14 @@ class FollowWall:
     def stop(self):
         self.laserscanSubs.unregister()
 
-    def checkEnterance(self):
-        if self.tf.frameExists("/base_link") and self.tf.frameExists("/map"):
-            t = self.tf.getLatestCommonTime("/base_link", "/map")
-            position, quaternion = self.tf.lookupTransform("/base_link", "/map", t)
-            if abs(position.x - self.entranceXcoord) < 0.04 and abs(position.y - self.entranceYcoord)< 0.04:
+    def checkEntrance(self):
+        if self.tf_listener.frameExists("/base_link") and self.tf.frameExists("/map"):
+            t = self.tf_listener.getLatestCommonTime("/base_link", "/map")
+            position, quaternion = self.tf_listener.lookupTransform("/base_link", "/map", t)
+            if abs(position.x - self.entranceXcoord - 0.25) < 0.04 and abs(position.y - self.entranceYcoord -0.25)< 0.04:
                 return True
+        return False
+
 
     def laserscan_callback(self, scan_data):
         self.counter += 1
@@ -85,7 +90,8 @@ class FollowWall:
     def movement(self):
         velocity = self.error_value + self.diff_PrevError + self.angle_minDist - math.pi * 0.5
         # avoid looping if posters not detected
-        lapComplete = self.checkEnterance
+        lapComplete = self.checkEntrance()
+        print('lap complete? ', lapComplete)
         if lapComplete and self.counter > 500 and self.turnAround == False:
             self.stop()
             self.rotate(180)
