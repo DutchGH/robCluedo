@@ -41,7 +41,7 @@ class robCluedo:
 
     def getRawImage(self):
         return self.rawImage
-    
+
     def assignScannedImage(self, clu):
         if clu.category == "PERSON":
             if self.murderer is None:
@@ -101,11 +101,8 @@ def main():
                 print(' Found both poster from the middle of the room ')
                 for i in range(0,2):
                     scanposter(robotRunning,cI,i)
-                # end program
-                robotRunning.produceTxtFile()
+                # both posters scanned, end program, write the text file
                 cI.writeResultsFile()
-                # print(cI.murderWeapon.name)
-                # print(cI.murderer.name)
                 running = False
                 break
 
@@ -114,6 +111,7 @@ def main():
                 robotRunning.stopMovement()
                 print('Scan first poster')
                 scanposter(robotRunning,cI,0)
+                #the robot goes to the entrance of the world
                 robotRunning.goToEntrance()
                 wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
                 print('starting search for second poster')
@@ -124,19 +122,20 @@ def main():
                         wallfollower.stop()
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
-                        # both posters scanned, end program
-                        robotRunning.produceTxtFile()
+                        # both posters scanned, end program, write the text file
                         cI.writeResultsFile()
-                        # print(cI.murderWeapon.name)
-                        # print(cI.murderer.name)
                         running = False
                         break
             # No posters identified after initial spin in the middle of the room
             else:
+                # the robot goes to the entrance of the world
                 robotRunning.goToEntrance()
-                # start following wall
+                # starts following the wall
                 wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
 
+                # doneOnce boolean is used to indicate the robot has found
+                # and analysed the first image it becomes True
+                # this is to avoid the algorithm analysing the same poster again
                 doneOnce = False
                 while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 1 and doneOnce == False:
@@ -149,8 +148,6 @@ def main():
                         print('starting search for second poster')
                         # resume wall following
                         wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
-
-
                     elif robotRunning.tracker.postercounter == 2:
                         print('poster counter = 2')
                         # stop wall following and scan poster
@@ -158,13 +155,10 @@ def main():
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
                         # both posters scanned, end program, write the text file
-                        robotRunning.produceTxtFile()
                         cI.writeResultsFile()
-                        # print(cI.murderWeapon.name)
-                        # print(cI.murderer.name)
                         running = False
                         break
-        
+
     except KeyboardInterrupt:
         print("Shutting down")
 
@@ -176,7 +170,6 @@ def scanposter(robotRunning,cI,i):
         data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
         data.setLocation(str(robotRunning.tracker.arlist[i]))
         cI.assignScannedImage(data)
-        # print(data.name)
         print('finished image analysis')
         # save image
 

@@ -11,14 +11,11 @@ from modules import CluedoClassifier
 
 class RobotStatus:
 
+    ####
+    ## Stores the coordinates for the entrance and centre of the  room and general
+    ## configurations for the robot
+    ####
     def __init__(self):
-        self.run = True
-        # lab5 world
-        # self.centreXcoordinate = 0.04
-        # self.centreYcoordinate = 3
-        # self.entranceXcoordinate = 0.04
-        # self.entranceYcoordinate = 1
-        # demo world
         self.centreXcoordinate = 5.38
         self.centreYcoordinate = -0.1
         self.entranceXcoordinate = 5.38
@@ -29,8 +26,12 @@ class RobotStatus:
     	self.movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
     	self.rate = rospy.Rate(10) #10hz
         self.desired_velocity = Twist()
-        # rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
+        rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
 
+    ####
+    ## Ths function is used to go to the middle of the given environment, using the centreXcoordinate
+    ## and centreYcoordinate.
+    ####
     def goToMiddle(self):
         rospy.loginfo("start of go to middle function")
         success = self.goToPose.goToPosition(self.centreXcoordinate, self.centreYcoordinate, 0.00)
@@ -41,19 +42,31 @@ class RobotStatus:
             rospy.loginfo("The Robot couldn't get this this position")
             self.goToPose.shutdown()
 
+    ####
+    ## Ths method is used to go to the entrance of the given environment, using the centreXcoordinate
+    ## and centreYcoordinate.
+    ####
     def goToEntrance(self):
         success = self.goToPose.goToPosition(self.entranceXcoordinate, self.entranceYcoordinate, 0.00)
         if success:
-            rospy.loginfo("RobotStatus class made it to the enterance")
+            rospy.loginfo("RobotStatus class made it to the entrance")
         else:
             rospy.loginfo("The Robot couldn't get this this position")
             self.goToPose.shutdown()
 
+    ####
+    ## This method stops the movement of the robot, it's used when analysing
+    ## images
+    ####
     def stopMovement(self):
         self.desired_velocity.linear.x = 0
         self.desired_velocity.angular.z = 0
         self.movement_pub.publish(self.desired_velocity)
 
+    ####
+    ## This method rotates the robot by the given angleValue specified when
+    ## calling the method
+    ####
     def rotate(self, angleValue):
         end_angle = radians(angleValue)
         self.desired_velocity.linear.x = 0
@@ -69,7 +82,10 @@ class RobotStatus:
         self.desired_velocity.angular.z = 0
         self.movement_pub.publish(self.desired_velocity)
 
-
+    ####
+    ## Processes bumps should it encounter one en route to the entrance or
+    ## the centre of the given environment
+    ####
     def processBump(self, data):
     	if (self.data.state == BumperEvent.PRESSED):
             rospy.loginfo('hit something... correcting')
@@ -82,18 +98,3 @@ class RobotStatus:
                 self.desired_velocity.linear.x = 0.2
                 self.movement_pub.publish(self.desired_velocity)
             rosp.loginfo('recovered moving on')
-
-
-    def produceTxtFile(self):
-        postInformationFile = open('ImageInformation.txt', 'w')
-        for i in range(1,3):
-            information = 'image number ' + str(i)
-            postInformationFile.write(information)
-            postInformationFile.write('\n')
-            postInformationFile.write('image location:')
-            information2 = str(self.tracker.arlist[i-1])
-            postInformationFile.write('\n')
-            postInformationFile.write(information2)
-            postInformationFile.write('\n')
-
-        postInformationFile.close()
