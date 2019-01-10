@@ -15,7 +15,6 @@ class Tracker():
 	def __init__(self):
 		self.tf_listener = tf.TransformListener()
 		self.length = 0.4
-		self.arfound = False
 		self.navigate = GoToPose()
 		self.arlist = []
 		self.postercounter = 0
@@ -25,38 +24,33 @@ class Tracker():
 		self.quatList =[]
 		self.alvar_sub = rospy.Subscriber("ar_pose_marker", AlvarMarkers, self.findar)
 		# self.image_sub = rospy.Subscriber('Cluedo_Result', String, self.callback)
-		self.arDetectPub = rospy.Publisher('CluARFound', Bool, queue_size=10)
+
 
 	#find ar_marker then
 	def findar(self,markers):
-		# while ar marker is not registered
-		while not self.arfound:
-			# self.tf_listener.waitForTransform("/map", "/ar_marker_0", rospy.Time(0), rospy.Duration(4.0))
-			try :
-				(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
-			except :
-				return
-			self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
-			#check if marker already registered
+		try :
+			(trans,rot) = self.tf_listener.lookupTransform('/map', '/ar_marker_0', rospy.Time(0))
+		except :
+			return
+		self.posterx,self.postery,self.posterz = trans[0],trans[1],trans[2]
+		#check if marker already registered
 
-			if len(self.arlist) == 0:
+		if len(self.arlist) == 0:
+			#new poster found
+			self.addPoster(trans, rot)
+			self.postercounter += 1
+			print('found a new poster')
+			print(self.arlist[0])
+		elif len(self.arlist) < 2:
+			samePoster = self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2)
+			if not samePoster:
 				#new poster found
 				self.addPoster(trans, rot)
 				self.postercounter += 1
-				print('found a new poster')
-				print(self.arlist[0])
-			elif len(self.arlist) < 2:
-				samePoster = self.nearequal(self.posterx, self.arlist[0][0], self.postery, self.arlist[0][1], 0.2)
-				if samePoster:
-					continue
-				else:
-					#new poster found
-					self.addPoster(trans, rot)
-					self.postercounter += 1
-					print('found a second poster')
-					print(self.arlist[1])
-			rospy.sleep(1)
-		return self.arfound
+				print('found a second poster')
+				print(self.arlist[1])
+		rospy.sleep(1)
+		return 0
 
 	def addPoster(self, trans, rot):
 		self.arlist.append(trans)
@@ -90,10 +84,6 @@ class Tracker():
 		#navigate to poster
 		reachDest = self.look(posterId);
 		if(reachDest):
-			#save poster coordinates
-			# print self.arlist
-			self.arDetectPub.publish(self.arfound)
-			self.arfound = False
 			rospy.sleep(1)
 			return True
 		return False
