@@ -19,10 +19,13 @@ class robCluedo:
     def __init__(self, pub, rate):
         self.image_sub = rospy.Subscriber('CluARFound', Bool, self.callback)
         self.image_feed = rospy.Subscriber('/camera/rgb/image_raw/', Image, self.setRawImage)
+        self.movement_pub = rospy.Publisher('mobile_base/commands/velocity', Twist, queue_size=10)
+    	self.rate = rospy.Rate(10) #10hz
+        self.desired_velocity = Twist()
 
         self.rawImage = None
-        self.murderer = None
-        self.murderWeapon = None
+        self.murderer = CleudoCharacter("Unkown","","")
+        self.murderWeapon = CleudoCharacter("Unkown","","")
 
         print("Up and Running")
 
@@ -37,6 +40,38 @@ class robCluedo:
 
     def getRawImage(self):
         return self.rawImage
+    
+    def centerImage(self):
+        x = 640
+        # Convert To Canny Edge Detection
+        img_canny = cv2.Canny(self.getRawImage(), 100, 200)
+        (contours, _) = cv2.findContours(img_canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Find the largest area for the contour
+        cnt_areas = [cv2.contourArea(contours[n]) for n in range(len(contours))]
+        maxCnt_index = cnt_areas.index(max(cnt_areas))
+
+        M = cv2.moments(contours[maxCnt_index])
+        max_cnt_x = int(M['m10']/M['m00'])
+        max_cnt_y = int(M['m01']/M['m00'])
+
+        # Centre image within the frame
+        img_centered = False
+        if x - max_cnt_x > 340:
+            self.desired_velocity.angular.z = 0.2
+
+        elif x - max_cnt_x < 280:
+            self.desired_velocity.angular.z = -0.2
+
+        else:
+            # Stop rotation (centering completed)
+            self.desired_velocity.angular.z = 0
+            img_centered = True
+
+        # Publish velocity and tell whoever called us if we've centered or not
+        self.movement_pub.publish(self.desired_velocity)
+        return img_centered
+        
 
     def assignScannedImage(self, clu):
         if clu.category == "PERSON":
@@ -79,8 +114,8 @@ class CleudoCharacter:
         self.fn = fn
         self.category = cat
         self.templateScore = 0
-        self.location = None
-        self.imageLocation = None
+        self.location = ""
+        self.imageLocation = ""
 
     def getScore(self):
         return self.templateScore
@@ -110,14 +145,6 @@ class CluedoClassifier():
         # We covered which topic receives messages that move the robot in the 2nd Lab Session
         self.clu_list = createCharacterList()
 
-        #Vars for image detection - courtesy of Andy Bullpit (School of Computing)
-        self.input_height = 224
-        self.input_width = 224
-        self.input_mean = 0
-        self.input_std = 255
-        self.input_layer = "Placeholder"
-        self.output_layer = "final_result"
-
     def analyseImg(self, img):
         cv_image = img
         clu_list = self.clu_list
@@ -131,9 +158,12 @@ class CluedoClassifier():
         best_w = 0
         best_h = 0
         for clu in clu_list:
+            scale = 0.3
+            # if clu.category == "WEAPON":
+            #     scale = 0.4
             template = cv2.imread(str(clu.fn),0)
             print(str(clu.fn))
-            template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
+            template = cv2.resize(template, None, fx = scale, fy = scale, interpolation = cv2.INTER_CUBIC)
             cv2.normalize(template, template, 0, 255, cv2.NORM_MINMAX)
             # template = cv2.Canny(template, 50,200)
             w, h = template.shape[::-1]

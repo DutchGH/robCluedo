@@ -109,6 +109,8 @@ def scanposter(robotRunning,cI,i):
     goToDest = robotRunning.tracker.position(i)
     if goToDest:
         print('Scanning poster')
+        while not cI.centerImage():
+            print(".")
         #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
         data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
         data.setLocation(str(robotRunning.tracker.arlist[i]))
