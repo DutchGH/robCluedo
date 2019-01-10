@@ -36,7 +36,6 @@ class GoToPose():
 
         # Tell the action client that we want to spin a thread by default
         self.move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction)
-        rospy.loginfo("Wait for the action server to come up")
 
         # Allow up to 5 seconds for the action server to come up
         self.move_base.wait_for_server(rospy.Duration(5))
@@ -53,10 +52,8 @@ class GoToPose():
 
         if success:
             return True
-            rospy.loginfo("Hooray, reached the desired pose")
         else:
             return False
-            rospy.loginfo("The base failed to reach the desired pose")
 
         # Sleep to give the last log messages time to be sent
         rospy.sleep(1)

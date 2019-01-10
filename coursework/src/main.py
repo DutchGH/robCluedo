@@ -41,7 +41,7 @@ def main():
         while running:
             # if both posters are found
             if robotRunning.tracker.postercounter == 2:
-                print(' Found both poster from the middle of the room ')
+                print('Found both poster from the middle of the room ')
                 for i in range(0,2):
                     scanposter(robotRunning,cI,i)
                 # both posters scanned, end program, write the text file
@@ -52,7 +52,7 @@ def main():
             #only single poster was found
             if robotRunning.tracker.postercounter == 1:
                 robotRunning.stopMovement()
-                print('Scan first poster')
+                print('Found only one poster after rotaion')
                 scanposter(robotRunning,cI,0)
                 #the robot goes to the entrance of the world
                 robotRunning.goToEntrance()
@@ -61,7 +61,6 @@ def main():
                 while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 2:
                         # stop wall following and scan poster
-                        print('found second')
                         wallfollower.stop()
                         robotRunning.stopMovement()
                         scanposter(robotRunning,cI,1)
@@ -83,7 +82,6 @@ def main():
                 while robotRunning.tracker.postercounter < 3:
                     if robotRunning.tracker.postercounter == 1 and doneOnce == False:
                         doneOnce = True
-                        print('found ar marker - count = 1')
                         # stop wall following and scan poster
                         wallfollower.stop()
                         robotRunning.stopMovement()
@@ -92,7 +90,6 @@ def main():
                         # resume wall following
                         wallfollower.start(robotRunning.entranceXcoordinate, robotRunning.entranceYcoordinate)
                     elif robotRunning.tracker.postercounter == 2:
-                        print('poster counter = 2')
                         # stop wall following and scan poster
                         wallfollower.stop()
                         robotRunning.stopMovement()
@@ -109,6 +106,8 @@ def scanposter(robotRunning,cI,i):
     goToDest = robotRunning.tracker.position(i)
     if goToDest:
         print('Scanning poster')
+        while not cI.centerImage():
+            print(".")
         #This will print out a "CluedoCharacter Object, You can get stuff like name, type etc"
         data = robotRunning.cluedoClassifier.analyseImg(cI.getRawImage())
         data.setLocation(str(robotRunning.tracker.arlist[i]))

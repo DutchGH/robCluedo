@@ -16,10 +16,10 @@ class RobotStatus:
     ## configurations for the robot
     ####
     def __init__(self):
-        self.centreXcoordinate = 6.38
+        self.centreXcoordinate = -5.38
         self.centreYcoordinate = -0.1
-        self.entranceXcoordinate = 5.38
-        self.entranceYcoordinate = -0.1
+        self.entranceXcoordinate = -7.0
+        self.entranceYcoordinate = 0.1
         self.goToPose = GoToPose()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()
@@ -33,13 +33,13 @@ class RobotStatus:
     ## and centreYcoordinate.
     ####
     def goToMiddle(self):
-        rospy.loginfo("start of go to middle function")
+        print("Goind to the middle")
         success = self.goToPose.goToPosition(self.centreXcoordinate, self.centreYcoordinate, 0.00)
         if success:
-            rospy.loginfo("The robot made it to the middle")
+            print("The robot made it to the middle")
             self.rotate(360)
         else:
-            rospy.loginfo("The Robot couldn't get this this position")
+            print("The Robot couldn't get this this position")
             self.goToPose.shutdown()
 
     ####
@@ -49,9 +49,9 @@ class RobotStatus:
     def goToEntrance(self):
         success = self.goToPose.goToPosition(self.entranceXcoordinate, self.entranceYcoordinate, 0.00)
         if success:
-            rospy.loginfo("RobotStatus class made it to the entrance")
+            print("The robot made it to the entrance")
         else:
-            rospy.loginfo("The Robot couldn't get this this position")
+            print("The Robot couldn't get this this position")
             self.goToPose.shutdown()
 
     ####
