@@ -14,20 +14,25 @@ from kobuki_msgs.msg import BumperEvent
 
 class FollowWall:
     def __init__(self):
-        # subscribe to laserscan topic
+        # subscribe to velocity topic
         self.velocityPublish = rospy.Publisher('/mobile_base/commands/velocity', Twist, queue_size = 10)
         self.tf_listener = tf.TransformListener()
+        # subscribe to bumber topic
         rospy.Subscriber("mobile_base/events/bumper", BumperEvent, self.processBump)
         self.velocity = Twist()
 
+        # callback count - used to check whether we've reached the entrance point
+        # after some wall following
         self.counter = 0
         self.turnAround = False
         # minimum distance from wall
         self.minDist_wall = 0.25
         # distance at middle of laserscan - in front of robot
         self.distAhead = 0
-        self.speed = 0.2
+        self.speed = 0.4
         self.maxAngularVel = 1
+        # 1 to follow wall on left, -1 to follow wall on right
+        self.direction = 1
 
         # angle against minimum distance point on map
         self.angle_minDist = 0
@@ -37,21 +42,23 @@ class FollowWall:
         self.diff_PrevError = 0
 
     def start(self, entranceXcoord, entranceYcoord):
+        # function to begin laser scanning
+        # subscribe to scan topic
         self.entranceXcoord = entranceXcoord
         self.entranceYcoord = entranceYcoord
         self.laserscanSubs = rospy.Subscriber('/scan', LaserScan, self.laserscan_callback)
 
     def stop(self):
+        # unsubscribe from laser scanner
         self.laserscanSubs.unregister()
 
+    # check whether it's back at the entrance point after starting to follow the wall
+    # if it's back at the entrance point, it's done a full traversal of the room
+    # so, we want to rotate, facing the opposite direction, and follow the wall
     def checkEntrance(self):
         t = self.tf_listener.getLatestCommonTime("/base_link", "/map")
         position, quaternion = self.tf_listener.lookupTransform("/base_link", "/map", t)
-        # print(position)
-        print('x coordinate ' + str(abs(position[1] - self.entranceXcoord - 0.25)))
-        print('y coordinate ' + str(abs(position[0] - self.entranceYcoord - 0.25)))
-        if abs(position[1] - self.entranceXcoord - 0.25) < 0.4 and abs(position[0] - self.entranceYcoord -0.25)< 0.4:
-            # print('inside checkEntrance if')
+        if abs(position[1] - (self.direction) * self.entranceXcoord - 0.25) < 0.4 and abs(position[0] - self.entranceYcoord - 0.25) < 0.4:
             return True
         return False
 
@@ -74,7 +81,9 @@ class FollowWall:
             # start scanning again
             self.start(self.entranceXcoord, self.entranceYcoord)
         else :
-            minIndex = int(size/2)
+            # if following wall on left, minIndex=size/2
+            # if following wall on right, minIndex=0
+            minIndex = int(size * (self.direction + 1) / 4)
             self.distAhead = laserValues[minIndex]
 
             # find minimum index value
@@ -91,18 +100,26 @@ class FollowWall:
             self.movement()
 
     def movement(self):
-        velocity = self.error_value + self.diff_PrevError + self.angle_minDist - math.pi * 0.5
-        # avoid looping if posters not detected
+        # calculate angular velocity, with which the turtlebot should turn
+        velocity = self.direction * (self.error_value + self.diff_PrevError + self.angle_minDist - math.pi * 0.5)
+        # if posters not detected, rotate to face the opposite direction and follow wall
         lapComplete = self.checkEntrance()
-        # print(self.counter)
         if lapComplete and self.counter > 80 and self.turnAround == False:
-            print('inside turn around if')
+            self.turnAround = True
+            # stop laser scanning and rotate
             self.stop()
             self.stopMovement()
             self.rotate(270)
-            rospy.sleep(5)
-            self.turnAround = True
+            rospy.sleep(1)
+            # follow wall on right
+            self.direction = -1
+            # reset counter
+            self.counter = 0
+            # start laser scanning
             self.start(self.entranceXcoord, self.entranceYcoord)
+        # if posters not detected after second room traversal, exit the program
+        elif lapComplete and self.counter > 80 and self.turnAround == True:
+            exit()
         # manage navigation
         if (velocity > 1):
             velocity = self.maxAngularVel
@@ -119,17 +136,14 @@ class FollowWall:
         self.velocityPublish.publish(self.velocity)
 
     def processBump(self, data):
-        # if robot bumps into an obstacle, stop moving and reverse
+        # in case the robot's laser scanner miscalculates
+        # if robot bumps into an obstacle, stop moving, reverse and rotate
     	if (data.state == BumperEvent.PRESSED):
-            rospy.loginfo('hit something... correcting')
-            self.velocity.linear.x = 0
-            self.velocity.angular.z = 0
-            self.velocityPublish.publish(self.velocity)
-            rospy.sleep(1)
-            rospy.loginfo('reversing...')
-            for i in range(0,30):
-                self.velocity.linear.x = -0.2
-                self.velocityPublish.publish(self.velocity)
+            rospy.loginfo('collision... correcting postition')
+            self.stop()
+            self.stopMovement()
+            self.reverseAndRotate()
+            self.start()
             rospy.loginfo('recovered moving on')
 
     def stopMovement(self):
@@ -138,7 +152,7 @@ class FollowWall:
         self.velocityPublish.publish(self.velocity)
 
     def reverseAndRotate(self):
-        # too close to object, reverse and rotate
+        # probably too close to object, reverse and rotate
         self.velocity.linear.x = -0.2
         self.velocityPublish.publish(self.velocity)
         rospy.sleep(0.5)
@@ -147,6 +161,7 @@ class FollowWall:
         rospy.sleep(1)
 
     def rotate(self, angle):
+        # rotate at specified angle
         self.velocity.linear.x = 0
         self.velocity.angular.z = -radians(angle)
         self.velocityPublish.publish(self.velocity)

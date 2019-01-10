@@ -88,7 +88,7 @@ class RobotStatus:
     ####
     def processBump(self, data):
     	if (data.state == BumperEvent.PRESSED):
-            rospy.loginfo('hit something... correcting')
+            rospy.loginfo('collision... correcting position')
             self.desired_velocity.linear.x = 0
             self.desired_velocity.angular.z = 0
             self.movement_pub.publish(self.desired_velocity)
