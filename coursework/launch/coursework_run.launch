@@ -1,0 +1,3 @@
+<launch>	
+	<node pkg="coursework" type="main.py" name="cluedo_main" output="screen"/>
+</launch>

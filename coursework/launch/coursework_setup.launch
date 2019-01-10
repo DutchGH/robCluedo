@@ -1,0 +1,17 @@
+<launch>
+	<arg name="map_file" default="$(find coursework)/maps/examplemap.yaml"/>
+	<arg name="world_file" default="$(find coursework)/src/worlds/lab5.world"/>
+
+
+	<include file="$(find turtlebot_gazebo)/launch/turtlebot_world.launch">
+	    <arg name="world_file" value="$(arg world_file)"/>
+	</include>
+	<include file="$(find coursework)/launch/simulated_localisation.launch">
+		<arg name="map_file" value="$(arg map_file)"/>
+	</include>
+	<include file="$(find turtlebot_rviz_launchers)/launch/view_navigation.launch">
+	</include>
+
+	<include file="$(find coursework)/launch/ar_tracking.launch"/>
+</launch>
+
