@@ -40,7 +40,7 @@ class robCluedo:
 
     def getRawImage(self):
         return self.rawImage
-    
+
     def centerImage(self):
         x = 640
         # Convert To Canny Edge Detection
@@ -71,7 +71,7 @@ class robCluedo:
         # Publish velocity and tell whoever called us if we've centered or not
         self.movement_pub.publish(self.desired_velocity)
         return img_centered
-        
+
 
     def assignScannedImage(self, clu):
         if clu.category == "PERSON":
@@ -166,12 +166,7 @@ class CluedoClassifier():
             # if clu.category == "WEAPON":
             #     scale = 0.4
             template = cv2.imread(str(clu.fn),0)
-<<<<<<< Updated upstream
-            print(str(clu.fn))
             template = cv2.resize(template, None, fx = scale, fy = scale, interpolation = cv2.INTER_CUBIC)
-=======
-            template = cv2.resize(template, None, fx = 0.3, fy = 0.3, interpolation = cv2.INTER_CUBIC)
->>>>>>> Stashed changes
             cv2.normalize(template, template, 0, 255, cv2.NORM_MINMAX)
             # template = cv2.Canny(template, 50,200)
             w, h = template.shape[::-1]
