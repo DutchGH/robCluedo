@@ -17,65 +17,8 @@ from std_msgs.msg import String, Bool
 from modules import robotStatus
 from modules import Tracker
 from modules import CluedoClassifier
+from modules.cluedoClassifier import robCluedo
 from modules import FollowWall
-
-class robCluedo:
-    def __init__(self, pub, rate):
-        self.image_sub = rospy.Subscriber('CluARFound', Bool, self.callback)
-        self.image_feed = rospy.Subscriber('/camera/rgb/image_raw/', Image, self.setRawImage)
-
-        self.rawImage = None
-        self.murderer = None
-        self.murderWeapon = None
-
-        print("Up and Running")
-
-    def callback(self, data):
-        print(data.data)
-
-    def ImageResult(self, data):
-        print(data.data)
-
-    def setRawImage(self, data):
-        self.rawImage = CvBridge().imgmsg_to_cv2(data, "bgr8")
-
-    def getRawImage(self):
-        return self.rawImage
-
-    def assignScannedImage(self, clu):
-        if clu.category == "PERSON":
-            if self.murderer is None:
-                self.murderer = clu
-            else:
-                if self.murderer.getScore() < clu.getScore():
-                    self.murderer = clu
-                else:
-                    print("We already have a murderer assigned.")
-        elif clu.category == "WEAPON":
-            if self.murderWeapon is None:
-                self.murderWeapon = clu
-            else:
-                if self.murderWeapon.getScore() < clu.getScore():
-                    self.murderWeapon = clu
-                else:
-                    print("We already have a murder weapon assigned.")
-        else:
-            print("This character does not have a type, we won't assign it")
-
-    def writeResultsFile(self):
-        resFile = os.path.dirname(os.path.abspath(__file__)) + "/CluedoResults.txt"
-        with open(resFile, 'w') as fp:
-            fp.write("RESULTS\n")
-            fp.write("Murderer:")
-            fp.write("Name: " + self.murderer.name + "\n")
-            fp.write("Location: " + self.murderer.getLocation() + "\n")
-            fp.write("Image Location: " + self.murderer.getImageLocation() + "\n")
-            fp.write("\n")
-            fp.write("Murder Weapon:\n")
-            fp.write("Type: " + self.murderWeapon.name + "\n")
-            fp.write("Location: " + self.murderWeapon.getLocation() + "\n")
-            fp.write("Image Location: " + self.murderWeapon.getImageLocation() + "\n")
-            fp.close()
 
 
 def publisher(name, type):

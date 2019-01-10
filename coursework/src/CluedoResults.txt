@@ -1,0 +1,9 @@
+RESULTS
+Murderer:Name: Mustard
+Location: [5.084812232146849, 2.1287381357614032, 0.3023933863314494]
+Image Location: /home/csunix/ll14jlb/catkin_ws/src/coursework/src/modules/../savedimg/13741834-cfd0-410b-a460-6efaa7535a3b.jpg
+
+Murder Weapon:
+Type: Wrench
+Location: [7.156328990486826, 3.696666984553289, 0.31541898782977934]
+Image Location: /home/csunix/ll14jlb/catkin_ws/src/coursework/src/modules/../savedimg/ba9a176a-5032-49b1-a5ea-19359fd36a21.jpg

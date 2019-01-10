@@ -87,7 +87,7 @@ class RobotStatus:
     ## the centre of the given environment
     ####
     def processBump(self, data):
-    	if (self.data.state == BumperEvent.PRESSED):
+    	if (data.state == BumperEvent.PRESSED):
             rospy.loginfo('hit something... correcting')
             self.desired_velocity.linear.x = 0
             self.desired_velocity.angular.z = 0

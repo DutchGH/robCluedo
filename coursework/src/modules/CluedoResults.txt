@@ -1,0 +1,9 @@
+RESULTS
+Murderer:Name: Mustard
+Location: [5.049357780722017, 2.1619352590541387, 0.30333557633205555]
+Image Location: /home/csunix/ll14jlb/catkin_ws/src/coursework/src/modules/../savedimg/d9265eaf-8226-4105-9c46-08a22d68ca9e.jpg
+
+Murder Weapon:
+Type: Rope
+Location: [7.243394652120489, 3.588317116189098, 0.33007433929502655]
+Image Location: /home/csunix/ll14jlb/catkin_ws/src/coursework/src/modules/../savedimg/f9ffd81f-5005-4879-9268-dbcb5d08c221.jpg
