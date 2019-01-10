@@ -97,4 +97,4 @@ class RobotStatus:
             for i in range(0,30):
                 self.desired_velocity.linear.x = 0.2
                 self.movement_pub.publish(self.desired_velocity)
-            rosp.loginfo('recovered moving on')
+            rospy.loginfo('recovered moving on')
