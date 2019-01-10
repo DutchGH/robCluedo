@@ -45,11 +45,14 @@ class FollowWall:
         self.laserscanSubs.unregister()
 
     def checkEntrance(self):
-        if self.tf_listener.frameExists("/base_link") and self.tf.frameExists("/map"):
-            t = self.tf_listener.getLatestCommonTime("/base_link", "/map")
-            position, quaternion = self.tf_listener.lookupTransform("/base_link", "/map", t)
-            if abs(position.x - self.entranceXcoord - 0.25) < 0.04 and abs(position.y - self.entranceYcoord -0.25)< 0.04:
-                return True
+        t = self.tf_listener.getLatestCommonTime("/base_link", "/map")
+        position, quaternion = self.tf_listener.lookupTransform("/base_link", "/map", t)
+        # print(position)
+        print('x coordinate ' + str(abs(position[1] - self.entranceXcoord - 0.25)))
+        print('y coordinate ' + str(abs(position[0] - self.entranceYcoord - 0.25)))
+        if abs(position[1] - self.entranceXcoord - 0.25) < 0.4 and abs(position[0] - self.entranceYcoord -0.25)< 0.4:
+            # print('inside checkEntrance if')
+            return True
         return False
 
 
@@ -91,10 +94,13 @@ class FollowWall:
         velocity = self.error_value + self.diff_PrevError + self.angle_minDist - math.pi * 0.5
         # avoid looping if posters not detected
         lapComplete = self.checkEntrance()
-        print('lap complete? ', lapComplete)
-        if lapComplete and self.counter > 500 and self.turnAround == False:
+        # print(self.counter)
+        if lapComplete and self.counter > 80 and self.turnAround == False:
+            print('inside turn around if')
             self.stop()
-            self.rotate(180)
+            self.stopMovement()
+            self.rotate(270)
+            rospy.sleep(5)
             self.turnAround = True
             self.start(self.entranceXcoord, self.entranceYcoord)
         # manage navigation
