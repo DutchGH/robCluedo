@@ -94,10 +94,13 @@ class robCluedo:
             print("This character does not have a type, we won't assign it")
 
     def writeResultsFile(self):
-        resFile = os.path.dirname(os.path.abspath(__file__)) + "/CluedoResults.txt"
+        resultsDir = os.path.dirname(os.path.abspath(__file__)) + "/../../results/"
+        if not os.path.exists(resultsDir):
+            os.makedirs(resultsDir)
+        resFile = resultsDir + "CluedoResults.txt"
         with open(resFile, 'w') as fp:
             fp.write("RESULTS\n")
-            fp.write("Murderer:")
+            fp.write("Murderer:\n")
             fp.write("Name: " + self.murderer.name + "\n")
             fp.write("Location: " + self.murderer.getLocation() + "\n")
             fp.write("Image Location: " + self.murderer.getImageLocation() + "\n")
@@ -107,6 +110,7 @@ class robCluedo:
             fp.write("Location: " + self.murderWeapon.getLocation() + "\n")
             fp.write("Image Location: " + self.murderWeapon.getImageLocation() + "\n")
             fp.close()
+        print("Finished! Results can be found at: " + str(os.path.normpath(resFile)))
 
 class CleudoCharacter:
     def __init__(self, name, fn, cat):
@@ -191,12 +195,13 @@ class CluedoClassifier():
         bottom_right = (top_left[0] + w, top_left[1] + h)
         cv2.rectangle(img, top_left, bottom_right, 255,0,0,0)
         # newFile = os.path.dirname(os.path.abspath(__file__)) + "/savedimg/" + str(uuid.uuid4()) + ".jpg"
-        imageDir = os.path.dirname(os.path.abspath(__file__)) + "/../" "savedimg/"
-        newFile = imageDir + str(uuid.uuid4()) + ".jpg"
+        imageDir = os.path.dirname(os.path.abspath(__file__)) + "/../../results/" + "capturedImages/"
+        newFile = imageDir + bestCharacter.name + ".jpg"
         if not os.path.exists(imageDir):
             os.makedirs(imageDir)
         cv2.imwrite(newFile, img)
-        bestCharacter.setImageLocation(newFile)
+        sanFile = str(os.path.normpath(newFile))
+        bestCharacter.setImageLocation(sanFile)
         return bestCharacter
 
         # cv2.waitKey(3)
