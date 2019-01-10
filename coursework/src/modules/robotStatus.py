@@ -16,10 +16,10 @@ class RobotStatus:
     ## configurations for the robot
     ####
     def __init__(self):
-        self.centreXcoordinate = -5.38
-        self.centreYcoordinate = -0.1
-        self.entranceXcoordinate = -7.0
-        self.entranceYcoordinate = 0.1
+        self.centreXcoordinate = -5
+        self.centreYcoordinate = -0.459
+        self.entranceXcoordinate = -5
+        self.entranceYcoordinate = -0.459
         self.goToPose = GoToPose()
         self.tracker = Tracker()
         self.cluedoClassifier = CluedoClassifier()
@@ -33,7 +33,7 @@ class RobotStatus:
     ## and centreYcoordinate.
     ####
     def goToMiddle(self):
-        print("Goind to the middle")
+        print("Going to the middle")
         success = self.goToPose.goToPosition(self.centreXcoordinate, self.centreYcoordinate, 0.00)
         if success:
             print("The robot made it to the middle")
